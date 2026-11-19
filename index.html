@@ -1,0 +1,936 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#111315">
+<meta name="description" content="Via is a display layer for authorized game compatibility and stability testing. English, 中文 and Русский.">
+<title>Via — game kernel assist safety test</title>
+<link rel="icon" type="image/png" href="assets/via-icon.png">
+<link rel="apple-touch-icon" href="assets/via-icon.png">
+<link rel="preconnect" href="https://miaoda.feishu.cn">
+<link rel="stylesheet" href="https://miaoda.feishu.cn/fonts/css2?family=Golos+Text:wght@400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap">
+<style>
+:root{
+  --ink:#111315;
+  --ink-2:#181b1e;
+  --ink-3:#22272b;
+  --bone:#f1f3ef;
+  --bone-2:#e6e9e4;
+  --paper:#fafbf8;
+  --muted:#727b7e;
+  --line-dark:rgba(255,255,255,.13);
+  --line-light:rgba(17,19,21,.12);
+  --ice:#c8dee2;
+  --ice-deep:#86aab0;
+  --white:rgba(255,255,255,.62);
+  --shadow:0 24px 70px rgba(17,19,21,.09);
+  --r:24px;
+  --page:1180px;
+  --latin:"Golos Text","Noto Sans SC",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --cjk:"Noto Sans SC","Golos Text",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  color:var(--ink);
+  background:var(--bone);
+  font-family:var(--latin);
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+html[lang="zh-CN"] body{font-family:var(--cjk)}
+img{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+button,a{-webkit-tap-highlight-color:transparent}
+button{font:inherit}
+::selection{background:var(--ice);color:var(--ink)}
+:focus-visible{outline:2px solid var(--ice-deep);outline-offset:4px}
+.wrap{width:min(calc(100% - 48px),var(--page));margin-inline:auto}
+.skip{position:absolute;left:16px;top:-60px;z-index:100;background:var(--bone);color:var(--ink);padding:12px 18px;border-radius:999px}
+.skip:focus{top:12px}
+
+/* header */
+.site-head{
+  position:sticky;top:0;z-index:20;
+  background:rgba(17,19,21,.82);
+  border-bottom:1px solid rgba(255,255,255,.1);
+  backdrop-filter:blur(20px) saturate(140%);
+  -webkit-backdrop-filter:blur(20px) saturate(140%);
+}
+.nav{height:74px;display:flex;align-items:center;justify-content:space-between;gap:24px}
+.brand{display:flex;align-items:center;gap:12px;color:#fff;min-width:0}
+.brand-mark{
+  width:34px;height:34px;border-radius:10px;display:block;overflow:hidden;flex:0 0 auto;
+  background:#fff;border:1px solid rgba(255,255,255,.45);
+  box-shadow:0 0 0 1px rgba(0,0,0,.08),inset 0 0 0 1px rgba(255,255,255,.2);
+}
+.brand-mark img{width:100%;height:100%;object-fit:cover;display:block}
+.brand-name{font-size:21px;font-weight:700;letter-spacing:-.04em;line-height:1}
+.brand-sub{font-size:11px;color:rgba(255,255,255,.5);margin-top:4px;letter-spacing:.02em}
+.nav-links{display:flex;align-items:center;gap:26px;color:rgba(255,255,255,.68);font-size:13px}
+.nav-links a{padding:8px 0;border-bottom:1px solid transparent;transition:color .2s,border-color .2s}
+.nav-links a:hover{color:#fff;border-color:rgba(255,255,255,.45)}
+.lang-switch{
+  display:inline-flex;align-items:center;gap:2px;padding:3px;border-radius:999px;
+  border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.06);
+}
+.lang-switch button{
+  border:0;background:transparent;color:rgba(255,255,255,.6);cursor:pointer;
+  padding:7px 10px;border-radius:999px;font-size:11.5px;line-height:1;transition:.2s;
+}
+.lang-switch button:hover{color:#fff}
+.lang-switch button[aria-pressed="true"]{background:rgba(255,255,255,.9);color:var(--ink)}
+.nav .lang-switch{flex:0 0 auto}
+
+/* hero */
+.hero{
+  position:relative;overflow:hidden;background:var(--ink);color:#fff;
+  padding:92px 0 88px;
+}
+.hero::before{
+  content:"";position:absolute;width:700px;height:700px;left:-220px;top:-280px;border-radius:50%;
+  background:radial-gradient(circle,rgba(200,222,226,.13),rgba(200,222,226,0) 66%);
+  pointer-events:none;
+}
+.hero::after{
+  content:"";position:absolute;width:520px;height:520px;right:-160px;bottom:-220px;border-radius:50%;
+  border:1px solid rgba(255,255,255,.09);
+  box-shadow:0 0 0 70px rgba(255,255,255,.025),0 0 0 140px rgba(255,255,255,.018);
+  pointer-events:none;
+}
+.hero-grid{position:relative;z-index:2;display:grid;grid-template-columns:minmax(0,1.08fr) minmax(340px,.92fr);gap:58px;align-items:center}
+.hero-copy{min-width:0}
+.kicker{
+  display:inline-flex;align-items:center;gap:9px;padding:7px 12px 7px 10px;
+  border:1px solid rgba(255,255,255,.2);border-radius:999px;
+  color:rgba(255,255,255,.72);font-size:11.5px;letter-spacing:.04em;
+}
+.kicker-dot{width:7px;height:7px;border-radius:50%;background:var(--ice);box-shadow:0 0 0 3px rgba(200,222,226,.14)}
+.hero h1{
+  margin:26px 0 0;font-size:clamp(3.4rem,6vw,6.15rem);line-height:.98;letter-spacing:-.055em;
+  font-weight:700;max-width:760px;
+}
+html[lang="zh-CN"] .hero h1{font-size:clamp(2.9rem,5.2vw,5.2rem);line-height:1.1;letter-spacing:-.045em}
+html[lang="ru"] .hero h1{font-size:clamp(2.9rem,5.2vw,5.15rem);line-height:1.02;letter-spacing:-.04em}
+.hero-lead{
+  margin:28px 0 0;max-width:560px;color:rgba(255,255,255,.64);font-size:16.5px;line-height:1.8;
+}
+.hero-meta{margin-top:20px;display:flex;flex-wrap:wrap;gap:10px;color:rgba(255,255,255,.42);font-size:12px}
+.hero-meta span{display:inline-flex;align-items:center;gap:8px}
+.hero-meta i{width:3px;height:3px;border-radius:50%;background:rgba(255,255,255,.4)}
+.hero-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:34px}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:10px;
+  min-height:48px;padding:0 22px;border-radius:999px;border:1px solid transparent;
+  font-size:13.5px;font-weight:600;cursor:pointer;transition:transform .2s,background .2s,border-color .2s,color .2s;
+}
+.btn:hover{transform:translateY(-1px)}
+.btn-primary{background:var(--bone);color:var(--ink);border-color:var(--bone)}
+.btn-primary:hover{background:#fff}
+.btn-ghost{background:transparent;color:rgba(255,255,255,.82);border-color:rgba(255,255,255,.24)}
+.btn-ghost:hover{border-color:rgba(255,255,255,.55);color:#fff}
+.btn svg{width:16px;height:16px;flex:0 0 auto}
+
+/* hero device */
+.device-stage{position:relative;min-height:700px;display:flex;align-items:center;justify-content:center}
+.stage-ring{position:absolute;width:470px;height:470px;border-radius:50%;border:1px solid rgba(255,255,255,.12);box-shadow:inset 0 0 80px rgba(200,222,226,.05)}
+.stage-ring::after{content:"";position:absolute;inset:44px;border-radius:50%;border:1px solid rgba(255,255,255,.08)}
+.phone{
+  position:relative;background:#0b0d0e;border:9px solid #252a2e;border-radius:46px;
+  box-shadow:0 44px 80px rgba(0,0,0,.5),inset 0 0 0 1px rgba(255,255,255,.14);
+  overflow:hidden;
+}
+.hero-phone{width:310px;aspect-ratio:9/19.4;transform:rotate(-4.5deg);z-index:3}
+.phone::before{
+  content:"";position:absolute;z-index:2;top:8px;left:50%;transform:translateX(-50%);
+  width:74px;height:18px;border-radius:999px;background:#080a0b;border:1px solid rgba(255,255,255,.1);
+}
+.phone img{width:100%;height:100%;object-fit:cover;object-position:top center}
+
+/* stats */
+.stats{position:relative;background:var(--bone);padding:0 0 18px}
+.stats-grid{
+  position:relative;z-index:5;display:grid;grid-template-columns:repeat(4,1fr);gap:1px;
+  margin-top:-34px;background:var(--line-light);border:1px solid var(--line-light);border-radius:22px;overflow:hidden;
+  box-shadow:var(--shadow);
+}
+.stat{background:rgba(250,251,248,.94);padding:24px 22px 22px;min-width:0}
+.stat-label{font-size:11px;color:var(--muted);letter-spacing:.04em}
+.stat-value{display:block;margin-top:9px;font-size:clamp(1.8rem,3vw,2.65rem);line-height:1;font-weight:700;letter-spacing:-.055em}
+.stat-note{margin-top:8px;font-size:10.5px;color:#8b9497;line-height:1.5}
+
+/* sections */
+.section{padding:112px 0}
+section[id],main[id]{scroll-margin-top:74px}
+.section-dark{background:var(--ink);color:#fff}
+.section-head{display:grid;grid-template-columns:.9fr 1.1fr;gap:60px;align-items:end}
+.section-head h2{margin:0;font-size:clamp(2.2rem,4vw,4.1rem);line-height:1.02;letter-spacing:-.05em;font-weight:700;max-width:700px}
+html[lang="zh-CN"] .section-head h2{line-height:1.12;letter-spacing:-.04em}
+html[lang="ru"] .section-head h2{line-height:1.05;letter-spacing:-.04em}
+.section-head p{margin:0;color:var(--muted);font-size:15px;line-height:1.8;max-width:540px}
+.section-dark .section-head p{color:rgba(255,255,255,.52)}
+.section-tag{display:block;margin-bottom:16px;color:#8b9598;font-size:11.5px;letter-spacing:.04em}
+.section-dark .section-tag{color:rgba(255,255,255,.42)}
+
+/* capability bento */
+.cap-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:16px;margin-top:52px}
+.cap{
+  position:relative;display:flex;flex-direction:column;justify-content:space-between;
+  padding:26px 26px 24px;border-radius:22px;min-height:238px;overflow:hidden;
+  background:rgba(255,255,255,.58);border:1px solid rgba(255,255,255,.9);
+  box-shadow:0 18px 50px rgba(17,19,21,.06);
+  backdrop-filter:blur(16px) saturate(140%);-webkit-backdrop-filter:blur(16px) saturate(140%);
+}
+.cap:nth-child(1),.cap:nth-child(2){grid-column:span 3;min-height:300px}
+.cap:nth-child(3),.cap:nth-child(4),.cap:nth-child(5){grid-column:span 2}
+.cap:nth-child(6){grid-column:span 6;min-height:170px}
+.cap.dark{background:var(--ink-2);border-color:rgba(255,255,255,.14);color:#fff;box-shadow:0 24px 60px rgba(17,19,21,.16)}
+.cap-icon{width:34px;height:34px;display:grid;place-items:center;border-radius:10px;background:rgba(17,19,21,.06);color:#394245}
+.cap.dark .cap-icon{background:rgba(255,255,255,.09);color:var(--ice)}
+.cap-icon svg{width:18px;height:18px}
+.cap h3{margin:22px 0 0;font-size:21px;line-height:1.2;letter-spacing:-.03em;font-weight:600;max-width:420px}
+.cap p{margin:12px 0 0;font-size:13px;line-height:1.75;color:#6b7477;max-width:460px}
+.cap.dark p{color:rgba(255,255,255,.58)}
+.cap-meta{margin-top:26px;font-size:10.5px;color:#909a9d;letter-spacing:.03em}
+.cap.dark .cap-meta{color:rgba(255,255,255,.4)}
+.cap:nth-child(6) .cap-body{display:grid;grid-template-columns:1fr auto;gap:24px;align-items:end}
+.cap:nth-child(6) h3{margin-top:20px}
+.lang-chips{display:flex;gap:6px;flex-wrap:wrap}
+.lang-chips span{padding:7px 11px;border-radius:999px;background:rgba(17,19,21,.06);font-size:11px;color:#4a5356}
+.cap.dark .lang-chips span{background:rgba(255,255,255,.1);color:rgba(255,255,255,.74)}
+.cap-flow{display:flex;align-items:center;gap:8px;margin-top:30px;flex-wrap:wrap}
+.flow-pill{padding:7px 10px;border-radius:999px;background:rgba(17,19,21,.06);font-size:10.5px;color:#525c5f}
+.cap.dark .flow-pill{background:rgba(255,255,255,.09);color:rgba(255,255,255,.7)}
+.flow-line{width:20px;height:1px;background:rgba(17,19,21,.18)}
+.cap.dark .flow-line{background:rgba(255,255,255,.2)}
+
+/* screens */
+.screens-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:56px}
+.shot{min-width:0;margin:0}
+.shot-frame{
+  position:relative;padding:12px;border-radius:30px;
+  background:linear-gradient(150deg,rgba(255,255,255,.16),rgba(255,255,255,.04));
+  border:1px solid rgba(255,255,255,.15);
+  box-shadow:0 32px 70px rgba(0,0,0,.34);
+}
+.shot:nth-child(1) .shot-frame{transform:rotate(-3deg)}
+.shot:nth-child(2) .shot-frame{transform:rotate(2deg)}
+.shot:nth-child(3) .shot-frame{transform:rotate(-1.5deg)}
+.shot-screen{border-radius:21px;overflow:hidden;aspect-ratio:9/19.4;background:#0b0d0e;border:1px solid rgba(255,255,255,.1)}
+.shot-screen img{width:100%;height:100%;object-fit:cover;object-position:top center}
+.shot figcaption{margin-top:18px;padding:0 8px;color:rgba(255,255,255,.44);font-size:11.5px;line-height:1.6}
+.shot figcaption b{display:block;color:rgba(255,255,255,.82);font-size:12.5px;font-weight:500;margin-bottom:3px}
+.shot-note{margin-top:30px;color:rgba(255,255,255,.34);font-size:10.5px}
+
+/* language */
+.lang-list{margin-top:54px;border-top:1px solid var(--line-light)}
+.lang-row{
+  display:grid;grid-template-columns:1.05fr .9fr 1fr;gap:30px;align-items:center;
+  padding:30px 0;border-bottom:1px solid var(--line-light);
+}
+.lang-name{font-size:clamp(2.2rem,4.6vw,4.3rem);line-height:1;font-weight:700;letter-spacing:-.055em}
+html[lang="zh-CN"] .lang-name{letter-spacing:-.04em}
+.lang-desc{font-size:12.5px;line-height:1.7;color:var(--muted)}
+.lang-samples{display:flex;flex-direction:column;gap:7px;align-items:flex-start}
+.sample{display:inline-flex;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.85);font-size:11px;color:#4b5558}
+.lang-default{display:inline-flex;align-items:center;gap:6px;margin-top:9px;color:#6b7679;font-size:10.5px}
+.lang-default i{width:5px;height:5px;border-radius:50%;background:#7aa5aa}
+
+/* safety scope */
+.scope{position:relative;overflow:hidden;background:var(--ink-2);color:#fff;padding:110px 0 118px}
+.scope::before{
+  content:"Via";position:absolute;right:-30px;top:-38px;
+  font-size:clamp(7rem,17vw,15rem);line-height:1;font-weight:700;letter-spacing:-.08em;
+  color:rgba(255,255,255,.035);pointer-events:none;white-space:nowrap;
+}
+.scope-grid{position:relative;z-index:2;display:grid;grid-template-columns:1.12fr .88fr;gap:60px;align-items:center}
+.scope h2{margin:0;font-size:clamp(2.5rem,4.8vw,4.8rem);line-height:1.02;letter-spacing:-.055em}
+html[lang="zh-CN"] .scope h2{line-height:1.12}
+.scope-intro p{margin:18px 0 0;color:rgba(255,255,255,.55);font-size:14.5px;line-height:1.8;max-width:660px}
+.scope-card{
+  border:1px solid rgba(255,255,255,.24);border-radius:22px;
+  background:linear-gradient(145deg,rgba(255,255,255,.17),rgba(255,255,255,.075));
+  padding:8px 26px;backdrop-filter:blur(16px) saturate(140%);
+  box-shadow:0 24px 60px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.22);
+}
+.scope-item{display:grid;grid-template-columns:26px 1fr;column-gap:10px;padding:20px 0;border-bottom:1px solid rgba(255,255,255,.09)}
+.scope-item:last-child{border-bottom:0}
+.scope-item > span{grid-row:1/3;font-size:10px;color:rgba(255,255,255,.46);font-variant-numeric:tabular-nums;padding-top:3px}
+.scope-item b{font-size:13px;font-weight:500;color:rgba(255,255,255,.95)}
+.scope-item p{margin:6px 0 0;font-size:11.5px;line-height:1.65;color:rgba(255,255,255,.6)}
+
+/* faq */
+.faq-grid{display:grid;grid-template-columns:.7fr 1.3fr;gap:70px;align-items:start}
+.faq-intro{position:sticky;top:104px}
+.faq-intro h2{margin:0;font-size:clamp(2.2rem,4vw,4rem);line-height:1.04;letter-spacing:-.05em}
+.faq-intro p{margin:18px 0 0;color:var(--muted);font-size:14px;line-height:1.8}
+.faq-list{border-top:1px solid var(--line-light)}
+details{border-bottom:1px solid var(--line-light)}
+summary{
+  position:relative;list-style:none;cursor:pointer;padding:23px 44px 23px 0;
+  font-size:15px;font-weight:600;line-height:1.55;letter-spacing:-.01em;
+}
+summary::-webkit-details-marker{display:none}
+summary::after{
+  content:"";position:absolute;right:4px;top:50%;width:12px;height:12px;transform:translateY(-50%);
+  background:linear-gradient(var(--ink),var(--ink)) center/12px 1px no-repeat,
+             linear-gradient(var(--ink),var(--ink)) center/1px 12px no-repeat;
+  transition:transform .2s;
+}
+details[open] summary::after{transform:translateY(-50%) rotate(90deg)}
+details p{margin:0;padding:0 44px 24px 0;color:#687174;font-size:13px;line-height:1.8;max-width:680px}
+
+/* footer */
+.site-foot{background:var(--ink);color:rgba(255,255,255,.52);padding:54px 0 44px}
+.foot-grid{display:flex;justify-content:space-between;gap:30px;align-items:flex-end}
+.foot-brand{color:#fff;font-size:28px;font-weight:700;letter-spacing:-.05em}
+.foot-sub{margin-top:8px;font-size:11px;color:rgba(255,255,255,.38)}
+.foot-meta{text-align:right;font-size:10.5px;line-height:1.8}
+.foot-meta span{display:block}
+
+/* reveal */
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.hero-copy .kicker,.hero-copy h1,.hero-copy .hero-lead,.hero-copy .hero-meta,.hero-copy .hero-actions{
+  animation:rise .65s cubic-bezier(.2,.7,.2,1) both;
+}
+.hero-copy h1{animation-delay:.06s}
+.hero-copy .hero-lead{animation-delay:.12s}
+.hero-copy .hero-meta{animation-delay:.18s}
+.hero-copy .hero-actions{animation-delay:.24s}
+.device-stage{animation:rise .8s .1s cubic-bezier(.2,.7,.2,1) both}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;animation-delay:0ms!important;scroll-behavior:auto!important;transition-duration:.001ms!important}
+}
+
+@media (max-width:1020px){
+  .hero-grid{grid-template-columns:1fr;gap:44px}
+  .device-stage{min-height:620px}
+  .hero-phone{width:280px}
+  .section-head{grid-template-columns:1fr;gap:24px}
+  .section-head p{max-width:640px}
+  .cap:nth-child(1),.cap:nth-child(2){grid-column:span 3}
+  .cap:nth-child(3),.cap:nth-child(4),.cap:nth-child(5){grid-column:span 2}
+  .scope-grid{grid-template-columns:1fr;gap:40px}
+  .br-screen{display:none}
+  .faq-grid{grid-template-columns:1fr;gap:36px}
+  .faq-intro{position:static}
+}
+@media (max-width:760px){
+  .wrap{width:min(calc(100% - 32px),var(--page))}
+  .nav{height:64px;gap:12px}
+  .nav-links{display:none}
+  .brand-sub{display:none}
+  .hero{padding:64px 0 76px}
+  .hero h1{margin-top:20px}
+  .hero-lead{font-size:15px}
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .stat{padding:20px 16px}
+  .stat-value{font-size:1.85rem}
+  .section{padding:78px 0}
+  .cap-grid{grid-template-columns:1fr;gap:12px;margin-top:38px}
+  .cap:nth-child(n){grid-column:span 1;min-height:210px}
+  .cap:nth-child(6){min-height:210px}
+  .cap:nth-child(6) .cap-body{grid-template-columns:1fr;gap:0}
+  .screens-grid{
+    display:grid;grid-auto-flow:column;grid-auto-columns:min(78vw,330px);grid-template-columns:none;
+    overflow-x:auto;gap:16px;padding:0 4px 18px;scroll-snap-type:x mandatory;
+    scrollbar-width:none;
+  }
+  .screens-grid::-webkit-scrollbar{display:none}
+  .shot{scroll-snap-align:start}
+  .shot:nth-child(n) .shot-frame{transform:none}
+  .lang-row{grid-template-columns:1fr;gap:14px;padding:24px 0}
+  .lang-name{font-size:2.5rem}
+  .scope{padding:78px 0}
+  .scope::before{font-size:6rem;top:8px;right:-10px}
+  section[id],main[id]{scroll-margin-top:64px}
+  .foot-grid{flex-direction:column;align-items:flex-start}
+  .foot-meta{text-align:left}
+}
+@media (max-width:520px){
+  .hero-phone{width:238px}
+  .device-stage{min-height:520px}
+  .hero-actions .btn{width:100%}
+  .btn{min-height:46px}
+  .stats-grid{border-radius:18px}
+  .stat-label{font-size:10px}
+  .stat-value{font-size:1.55rem}
+  .stat-note{font-size:9.5px}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main" data-i18n="skip">Skip to content</a>
+
+<header class="site-head">
+  <div class="wrap nav">
+    <a class="brand" href="#top" aria-label="Via home">
+      <span class="brand-mark"><img src="assets/via-icon.png" alt=""></span>
+      <span>
+        <span class="brand-name">Via</span>
+        <span class="brand-sub" data-i18n="brandSub">Safety test</span>
+      </span>
+    </a>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="#interface" data-i18n="navInterface">Interface</a>
+      <a href="#capabilities" data-i18n="navCapabilities">Capabilities</a>
+      <a href="#screens" data-i18n="navScreens">Screens</a>
+      <a href="#languages" data-i18n="navLanguages">Languages</a>
+      <a href="#safety" data-i18n="navSafety">Safety</a>
+      <a href="#faq" data-i18n="navFaq">FAQ</a>
+    </nav>
+    <div class="lang-switch" role="group" aria-label="Language" data-i18n-aria="languageAria">
+      <button type="button" data-lang="en" aria-pressed="true">EN</button>
+      <button type="button" data-lang="zh" aria-pressed="false">中文</button>
+      <button type="button" data-lang="ru" aria-pressed="false">RU</button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+  <section class="hero" id="top">
+    <div class="wrap hero-grid">
+      <div class="hero-copy">
+        <div class="kicker"><span class="kicker-dot"></span><span data-i18n="heroKicker">Via · game kernel assist safety test</span></div>
+        <h1 data-i18n="heroTitle">A quieter test layer over the game.</h1>
+        <p class="hero-lead" data-i18n="heroLead">Via is a display layer for authorized game compatibility and stability testing. It keeps the interface quiet and supports English, 中文 and Русский.</p>
+        <div class="hero-meta">
+          <span data-i18n="metaAndroid">Android 8.0+</span><i></i>
+          <span data-i18n="metaRoot">Root required</span><i></i>
+          <span data-i18n="metaScope">Authorized testing only</span>
+        </div>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#screens">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6S2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="2.6"/></svg>
+            <span data-i18n="ctaPrimary">See the interface</span>
+          </a>
+          <a class="btn btn-ghost" href="#safety" data-i18n="ctaSecondary">Test scope</a>
+        </div>
+      </div>
+      <div class="device-stage" aria-hidden="true">
+        <div class="stage-ring"></div>
+        <div class="phone hero-phone">
+          <img src="assets/via-en.jpg" alt="Via English interface on a phone" fetchpriority="high">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="stats">
+    <div class="wrap">
+      <div class="stats-grid">
+        <div class="stat"><span class="stat-label" data-i18n="statLanguages">Languages</span><strong class="stat-value">3</strong><div class="stat-note" data-i18n="statLanguagesNote">English · 中文 · Русский</div></div>
+        <div class="stat"><span class="stat-label" data-i18n="statBlur">Background blur</span><strong class="stat-value">9<span style="font-size:.45em;letter-spacing:-.02em"> dp</span></strong><div class="stat-note" data-i18n="statBlurNote">Whole wallpaper, one glass layer</div></div>
+        <div class="stat"><span class="stat-label" data-i18n="statGlassBlur">Glass blur</span><strong class="stat-value">24<span style="font-size:.45em">%</span></strong><div class="stat-note" data-i18n="statGlassBlurNote">Same wallpaper, one glass layer</div></div>
+        <div class="stat"><span class="stat-label" data-i18n="statOpacity">Glass opacity</span><strong class="stat-value">50<span style="font-size:.45em">%</span></strong><div class="stat-note" data-i18n="statOpacityNote">White highlight, transparent</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="interface">
+    <div class="wrap section-head">
+      <div>
+        <span class="section-tag" data-i18n="layerTag">The test layer</span>
+        <h2 data-i18n="layerTitle">One layer. Six controlled choices.</h2>
+      </div>
+      <p data-i18n="layerLead">This page describes the interface and the test boundaries, not the internals. The layer stays quiet; the test stays authorized.</p>
+    </div>
+  </section>
+
+  <section class="section" id="capabilities" style="padding-top:0">
+    <div class="wrap">
+      <div class="cap-grid">
+        <article class="cap dark">
+          <div class="cap-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 4.5h14v15H5z"/><path d="M8 8h8M8 12h5M8 16h6"/></svg></div>
+          <div>
+            <h3 data-i18n="cap1Title">Game first, layer second</h3>
+            <p data-i18n="cap1Body">The test layer appears only after the game is in the foreground. No extra game process, no focus stealing.</p>
+            <div class="cap-flow"><span class="flow-pill" data-i18n="cap1a">Game</span><span class="flow-line"></span><span class="flow-pill" data-i18n="cap1b">foreground</span><span class="flow-line"></span><span class="flow-pill" data-i18n="cap1c">test layer</span></div>
+          </div>
+        </article>
+        <article class="cap">
+          <div class="cap-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8"/><path d="m8.5 12 2.4 2.4 4.6-5"/></svg></div>
+          <div>
+            <h3 data-i18n="cap2Title">Scope check before a session</h3>
+            <p data-i18n="cap2Body">A short check confirms the authorized test environment before the layer appears. Internal paths and implementation details stay off this page.</p>
+            <div class="cap-meta" data-i18n="cap2Meta">authorized environment · no internals</div>
+          </div>
+        </article>
+        <article class="cap">
+          <div class="cap-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 9h8M8 15h5" opacity=".55"/></svg></div>
+          <div><h3 data-i18n="cap3Title">Display-only glass</h3><p data-i18n="cap3Body">The glass stays transparent over the wallpaper. No separate dark panel behind the cards.</p></div>
+          <div class="cap-meta" data-i18n="cap3Meta">9 dp · 50% · 24%</div>
+        </article>
+        <article class="cap">
+          <div class="cap-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3.5 19 6v5.5c0 4.2-2.8 7.6-7 9-4.2-1.4-7-4.8-7-9V6z"/><path d="M9 12h6"/></svg></div>
+          <div><h3 data-i18n="cap4Title">Session state stays on device</h3><p data-i18n="cap4Body">Test state is kept on the device. The site has no account form and publishes no credentials.</p></div>
+          <div class="cap-meta" data-i18n="cap4Meta">local state · no account form</div>
+        </article>
+        <article class="cap">
+          <div class="cap-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 7h16M7 4v6M17 4v6M4 17h16M7 14v6M17 14v6"/></svg></div>
+          <div><h3 data-i18n="cap5Title">Layout for each device</h3><p data-i18n="cap5Body">The layout scales to resolution and DPI. No internal paths are shown.</p></div>
+          <div class="cap-meta" data-i18n="cap5Meta">layout · DPI · aspect</div>
+        </article>
+        <article class="cap">
+          <div class="cap-body">
+            <div>
+              <div class="cap-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8"/><path d="M4 12h16M12 4c2.5 2.2 4 4.8 4 8s-1.5 5.8-4 8c-2.5-2.2-4-4.8-4-8s1.5-5.8 4-8z"/></svg></div>
+              <h3 data-i18n="cap6Title">Three languages, one layout</h3>
+              <p data-i18n="cap6Body">English is the default on first launch; 中文 and Русский use the same layout.</p>
+            </div>
+            <div class="lang-chips"><span>English</span><span>中文</span><span>Русский</span></div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-dark" id="screens">
+    <div class="wrap section-head">
+      <div>
+        <span class="section-tag" data-i18n="screensTag">Real screens</span>
+        <h2 data-i18n="screensTitle">The interface, as it runs.</h2>
+      </div>
+      <p data-i18n="screensLead">English, Chinese and Russian on the same device. One layout, three language layers.</p>
+    </div>
+    <div class="wrap">
+      <div class="screens-grid">
+        <figure class="shot">
+          <div class="shot-frame"><div class="shot-screen"><img src="assets/via-en.jpg" alt="Via English interface" loading="eager" decoding="sync"></div></div>
+          <figcaption><b data-i18n="shot1Title">English</b><span data-i18n="shot1Body">First launch defaults to English. The first screen asks for a language.</span></figcaption>
+        </figure>
+        <figure class="shot">
+          <div class="shot-frame"><div class="shot-screen"><img src="assets/via-zh.jpg" alt="Via Chinese interface" loading="eager" decoding="sync"></div></div>
+          <figcaption><b data-i18n="shot2Title">中文</b><span data-i18n="shot2Body">Language picker and full Chinese interface.</span></figcaption>
+        </figure>
+        <figure class="shot">
+          <div class="shot-frame"><div class="shot-screen"><img src="assets/via-ru.jpg" alt="Via Russian interface" loading="eager" decoding="sync"></div></div>
+          <figcaption><b data-i18n="shot3Title">Русский</b><span data-i18n="shot3Body">The same layout with Russian labels.</span></figcaption>
+        </figure>
+      </div>
+      <div class="shot-note" data-i18n="screensNote">Captured on one Xiaomi device. The screenshots follow the in-app language setting.</div>
+    </div>
+  </section>
+
+  <section class="section" id="languages">
+    <div class="wrap section-head">
+      <div>
+        <span class="section-tag" data-i18n="langTag">Language</span>
+        <h2 data-i18n="langTitle">English first. Then yours.</h2>
+      </div>
+      <p data-i18n="langLead">The first screen is a language picker. English is selected by default; the choice is stored locally and survives restarts. The same three labels are used across the interface.</p>
+    </div>
+    <div class="wrap">
+      <div class="lang-list">
+        <article class="lang-row">
+          <div class="lang-name">English</div>
+          <div><div class="lang-desc" data-i18n="langEnDesc">Default on first launch. Change it later in Interface settings.</div><span class="lang-default"><i></i><span data-i18n="langDefault">Default</span></span></div>
+          <div class="lang-samples"><span class="sample">Start HUD</span><span class="sample">Settings</span><span class="sample">Waiting for license</span></div>
+        </article>
+        <article class="lang-row">
+          <div class="lang-name">中文</div>
+          <div><div class="lang-desc" data-i18n="langZhDesc">完整中文界面，首次启动可在语言弹窗里选择，之后可在界面设置里切回。</div></div>
+          <div class="lang-samples"><span class="sample">开启 HUD</span><span class="sample">设置</span><span class="sample">等待授权</span></div>
+        </article>
+        <article class="lang-row">
+          <div class="lang-name">Русский</div>
+          <div><div class="lang-desc" data-i18n="langRuDesc">Полный русский интерфейс. Выбирается при первом запуске, меняется в настройках интерфейса.</div></div>
+          <div class="lang-samples"><span class="sample">Включить HUD</span><span class="sample">Настройки</span><span class="sample">Ожидание лицензии</span></div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="scope" id="safety">
+    <div class="wrap scope-grid">
+      <div class="scope-intro">
+        <span class="section-tag" data-i18n="safetyTag">Safety</span>
+        <h2 data-i18n="safetyTitle">Test scope, stated plainly.</h2>
+        <p data-i18n="safetyLead">This is the public page for the test program. It describes the interface and what stays private: internal paths, account credentials and implementation details.</p>
+      </div>
+      <aside class="scope-card" aria-label="Safety scope" data-i18n-aria="safetyFacts">
+        <div class="scope-item"><span>01</span><b data-i18n="safety1Title">Interface only</b><p data-i18n="safety1Body">The page shows the screens and the language coverage.</p></div>
+        <div class="scope-item"><span>02</span><b data-i18n="safety2Title">No internal paths</b><p data-i18n="safety2Body">Paths and implementation details stay off the page.</p></div>
+        <div class="scope-item"><span>03</span><b data-i18n="safety3Title">Authorized scope</b><p data-i18n="safety3Body">Presented for authorized compatibility and stability testing.</p></div>
+      </aside>
+    </div>
+  </section>
+
+  <section class="section" id="faq">
+    <div class="wrap faq-grid">
+      <div class="faq-intro">
+        <span class="section-tag" data-i18n="faqTag">FAQ</span>
+        <h2 data-i18n="faqTitle">Before you test.</h2>
+        <p data-i18n="faqLead">Scope and operating notes, not implementation detail.</p>
+      </div>
+      <div class="faq-list">
+        <details open><summary data-i18n="faq0Q">What stays off this site?</summary><p data-i18n="faq0A">Internal paths, account credentials and implementation details.</p></details>
+        <details><summary data-i18n="faq1Q">What is Via?</summary><p data-i18n="faq1A">A display layer for authorized game compatibility and stability testing.</p></details>
+        <details><summary data-i18n="faq2Q">Does Via need root?</summary><p data-i18n="faq2A">Yes. System-level display features depend on root. The app reports the device state on the home card.</p></details>
+        <details><summary data-i18n="faq3Q">Does it change game content?</summary><p data-i18n="faq3A">No. It only draws a display layer; game content is untouched.</p></details>
+        <details><summary data-i18n="faq4Q">Does the site collect account data?</summary><p data-i18n="faq4A">No. The site has no login, no account form and no credential fields.</p></details>
+        <details><summary data-i18n="faq5Q">How do I change the language?</summary><p data-i18n="faq5A">Settings → Interface settings → Language. The interface follows the new language.</p></details>
+        <details><summary data-i18n="faq6Q">Why is English the default?</summary><p data-i18n="faq6A">A first launch starts in English; the picker then offers 中文 and Русский. The choice is remembered.</p></details>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap foot-grid">
+    <div>
+      <div class="foot-brand">Via</div>
+      <div class="foot-sub" data-i18n="footSub">A display layer for game kernel assist safety testing by Xiangshi Studio.</div>
+    </div>
+    <div class="foot-meta">
+      <span>© 2026 Xiangshi Studio</span>
+      <span data-i18n="footNote">Android · root required · English / 中文 / Русский</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ===== 三语文案与切换 ===== */
+const I18N = {
+  en: {
+    pageTitle: "Via — game kernel assist safety test",
+    metaDescription: "Via is a display layer for authorized game compatibility and stability testing. English, 中文 and Русский.",
+    skip: "Skip to content",
+    brandSub: "Safety test",
+    navInterface: "Interface",
+    navCapabilities: "Capabilities",
+    navScreens: "Screens",
+    navLanguages: "Languages",
+    navSafety: "Safety",
+    navFaq: "FAQ",
+    languageAria: "Language",
+    heroKicker: "Via · game kernel assist safety test",
+    heroTitle: "A quieter test layer over the game.",
+    heroLead: "Via is a display layer for authorized game compatibility and stability testing. It keeps the interface quiet and supports English, 中文 and Русский.",
+    metaAndroid: "Android 8.0+",
+    metaRoot: "Root required",
+    metaScope: "Authorized testing only",
+    ctaPrimary: "See the interface",
+    ctaSecondary: "Test scope",
+    statLanguages: "Languages",
+    statLanguagesNote: "English · 中文 · Русский",
+    statBlur: "Background blur",
+    statBlurNote: "Whole wallpaper, one glass layer",
+    statOpacity: "Glass opacity",
+    statOpacityNote: "White highlight, transparent",
+    statGlassBlur: "Glass blur",
+    statGlassBlurNote: "Same wallpaper, one glass layer",
+    layerTag: "The test layer",
+    layerTitle: "One layer. Six controlled choices.",
+    layerLead: "This page describes the interface and the test boundaries, not the internals. The layer stays quiet; the test stays authorized.",
+    cap1Title: "Game first, layer second",
+    cap1Body: "The test layer appears only after the game is in the foreground. No extra game process, no focus stealing.",
+    cap1a: "Game",
+    cap1b: "foreground",
+    cap1c: "test layer",
+    cap2Title: "Scope check before a session",
+    cap2Body: "A short check confirms the authorized test environment before the layer appears. Internal paths and implementation details stay off this page.",
+    cap2Meta: "authorized environment · no internals",
+    cap3Title: "Display-only glass",
+    cap3Body: "The glass stays transparent over the wallpaper. No separate dark panel behind the cards.",
+    cap3Meta: "9 dp · 50% · 24%",
+    cap4Title: "Session state stays on device",
+    cap4Body: "Test state is kept on the device. The site has no account form and publishes no credentials.",
+    cap4Meta: "local state · no account form",
+    cap5Title: "Layout for each device",
+    cap5Body: "The layout scales to resolution and DPI. No internal paths are shown.",
+    cap5Meta: "layout · DPI · aspect",
+    cap6Title: "Three languages, one layout",
+    cap6Body: "English is the default on first launch; 中文 and Русский use the same layout.",
+    screensTag: "Real screens",
+    screensTitle: "The interface, as it runs.",
+    screensLead: "English, Chinese and Russian on the same device. One layout, three language layers.",
+    shot1Title: "English",
+    shot1Body: "First launch defaults to English. The first screen asks for a language.",
+    shot2Title: "中文",
+    shot2Body: "Language picker and full Chinese interface.",
+    shot3Title: "Русский",
+    shot3Body: "The same layout with Russian labels.",
+    screensNote: "Captured on one Xiaomi device. The screenshots follow the in-app language setting.",
+    langTag: "Language",
+    langTitle: "English first. Then yours.",
+    langLead: "The first screen is a language picker. English is selected by default; the choice is stored locally and survives restarts. The same three labels are used across the interface.",
+    langEnDesc: "Default on first launch. Change it later in Interface settings.",
+    langDefault: "Default",
+    langZhDesc: "Full Chinese interface. Choose it in the first-launch picker, or switch later in Interface settings.",
+    langRuDesc: "Full Russian interface. Choose it at first launch, or switch later in Interface settings.",
+    safetyTag: "Safety",
+    safetyTitle: "Test scope, stated plainly.",
+    safetyLead: "This is the public page for the test program. It describes the interface and what stays private: internal paths, account credentials and implementation details.",
+    safety1Title: "Interface only",
+    safety1Body: "The page shows the screens and the language coverage.",
+    safety2Title: "No internal paths",
+    safety2Body: "Paths and implementation details stay off the page.",
+    safety3Title: "Authorized scope",
+    safety3Body: "Presented for authorized compatibility and stability testing.",
+    safetyFacts: "Safety scope",
+    faqTag: "FAQ",
+    faqTitle: "Before you test.",
+    faqLead: "Scope and operating notes, not implementation detail.",
+    faq0Q: "What stays off this site?",
+    faq0A: "Internal paths, account credentials and implementation details.",
+    faq1Q: "What is Via?",
+    faq1A: "A display layer for authorized game compatibility and stability testing.",
+    faq2Q: "Does Via need root?",
+    faq2A: "Yes. System-level display features depend on root. The app reports the device state on the home card.",
+    faq3Q: "Does it change game content?",
+    faq3A: "No. It only draws a display layer; game content is untouched.",
+    faq4Q: "Does the site collect account data?",
+    faq4A: "No. The site has no login, no account form and no credential fields.",
+    faq5Q: "How do I change the language?",
+    faq5A: "Settings → Interface settings → Language. The interface follows the new language.",
+    faq6Q: "Why is English the default?",
+    faq6A: "A first launch starts in English; the picker then offers 中文 and Русский. The choice is remembered.",
+    footSub: "A display layer for game kernel assist safety testing by Xiangshi Studio.",
+    footNote: "Android · root required · English / 中文 / Русский"
+  },
+  zh: {
+    pageTitle: "Via — 游戏内核辅助安全测试",
+    metaDescription: "Via 是面向授权环境的游戏兼容性与稳定性测试显示层。支持 English、中文与 Русский。",
+    skip: "跳到正文",
+    brandSub: "安全测试",
+    navInterface: "界面",
+    navCapabilities: "能力",
+    navScreens: "截图",
+    navLanguages: "语言",
+    navSafety: "安全",
+    navFaq: "问答",
+    languageAria: "语言",
+    heroKicker: "Via · 游戏内核辅助安全测试",
+    heroTitle: "覆在游戏之上的，安静测试层。",
+    heroLead: "Via 是面向授权环境的游戏兼容性与稳定性测试显示层。界面保持安静，支持 English、中文和 Русский。",
+    metaAndroid: "Android 8.0 及以上",
+    metaRoot: "需要 Root",
+    metaScope: "仅限授权测试",
+    ctaPrimary: "看看界面",
+    ctaSecondary: "测试边界",
+    statLanguages: "语言",
+    statLanguagesNote: "English · 中文 · Русский",
+    statBlur: "背景模糊",
+    statBlurNote: "整张壁纸，同一层玻璃",
+    statOpacity: "玻璃透明度",
+    statOpacityNote: "白色高亮，通透",
+    statGlassBlur: "玻璃模糊",
+    statGlassBlurNote: "同一张壁纸，同一层玻璃",
+    layerTag: "测试层",
+    layerTitle: '一层界面，<br>六个受控决定。',
+    layerLead: "这里只描述界面与测试边界，不展开内部实现。界面保持安静，测试保持在授权范围内。",
+    cap1Title: "先进入游戏，再显示测试层",
+    cap1Body: "只有游戏进入前台后才显示测试层。不额外拉起游戏进程，也不抢焦点。",
+    cap1a: "游戏",
+    cap1b: "前台",
+    cap1c: "测试层",
+    cap2Title: "开始前先确认测试范围",
+    cap2Body: "显示前做一次短校验，确认处于授权测试环境。内部路径与实现细节不在本页出现。",
+    cap2Meta: "授权环境 · 不展示内部",
+    cap3Title: "只负责显示的玻璃层",
+    cap3Body: "玻璃始终通透地覆在壁纸上，卡片背后没有额外的深色底板。",
+    cap3Meta: "9 dp · 50% · 24%",
+    cap4Title: "会话状态留在本机",
+    cap4Body: "测试状态只留在设备上。本官网没有账号表单，也不发布任何凭据。",
+    cap4Meta: "本机状态 · 无账号表单",
+    cap5Title: "按设备排版",
+    cap5Body: "布局按分辨率与 DPI 适配，页面不展示内部路径。",
+    cap5Meta: "布局 · DPI · 比例",
+    cap6Title: "三种语言，一套布局",
+    cap6Body: "首次启动默认 English；中文与 Русский 共用同一套布局。",
+    screensTag: "真机截图",
+    screensTitle: '界面，<br class="br-screen">就是运行时的样子。',
+    screensLead: "英文、中文、俄文三张真机截图。同一台设备，一套布局，三种语言。",
+    shot1Title: "English",
+    shot1Body: "首次启动默认，首屏先选语言。",
+    shot2Title: "中文",
+    shot2Body: "语言弹窗与完整中文界面。",
+    shot3Title: "Русский",
+    shot3Body: "同一套布局，俄文标签。",
+    screensNote: "在同一台小米设备上拍摄。截图语言跟随应用内设置。",
+    langTag: "语言",
+    langTitle: '先 English，<br>再选你的语言。',
+    langLead: "第一屏是语言选择。默认选中 English；选择结果保存在本机，重启后仍然有效。界面内三种语言共用同一套标签。",
+    langEnDesc: "首次启动默认。之后可在界面设置里切换。",
+    langDefault: "默认",
+    langZhDesc: "完整中文界面。首次启动可在语言弹窗里选择，之后可在界面设置里切回。",
+    langRuDesc: "完整俄文界面。首次启动时选择，之后可在界面设置里切换。",
+    safetyTag: "安全",
+    safetyTitle: "测试边界，写清楚。",
+    safetyLead: "这是测试计划的对外页面。只说明界面，以及不公开的部分：内部路径、账号凭据与实现细节。",
+    safety1Title: "只展示界面",
+    safety1Body: "本页展示截图与语言覆盖。",
+    safety2Title: "不写内部路径",
+    safety2Body: "路径与实现细节不进入页面。",
+    safety3Title: "授权范围",
+    safety3Body: "仅面向授权的兼容性与稳定性测试。",
+    safetyFacts: "安全范围",
+    faqTag: "问答",
+    faqTitle: "测试之前。",
+    faqLead: "只讲测试范围与运行条件，不展开实现细节。",
+    faq0Q: "本页不公开什么？",
+    faq0A: "内部路径、账号凭据与实现细节。",
+    faq1Q: "Via 是什么？",
+    faq1A: "面向授权环境的游戏兼容性与稳定性测试显示层。",
+    faq2Q: "需要 Root 吗？",
+    faq2A: "需要。系统级显示能力依赖 Root；应用会在主页卡片显示设备状态。",
+    faq3Q: "会改游戏内容吗？",
+    faq3A: "不会。只叠加显示层，游戏内容不变。",
+    faq4Q: "官网会收集账号信息吗？",
+    faq4A: "不会。本官网没有登录、账号表单，也没有凭据输入框。",
+    faq5Q: "之后怎么改语言？",
+    faq5A: "设置 → 界面设置 → 语言。界面会跟随新语言。",
+    faq6Q: "为什么默认英文？",
+    faq6A: "首次启动先进入英文，语言弹窗提供中文与 Русский；选择会被记住。",
+    footSub: "相识工作室出品的游戏内核辅助安全测试显示层。",
+    footNote: "Android · 需要 Root · English / 中文 / Русский"
+  },
+  ru: {
+    pageTitle: "Via — тестирование безопасности игрового ядра",
+    metaDescription: "Via — слой отображения для авторизованного тестирования совместимости и стабильности. English, 中文 и Русский.",
+    skip: "Перейти к содержимому",
+    brandSub: "Тест безопасности",
+    navInterface: "Интерфейс",
+    navCapabilities: "Возможности",
+    navScreens: "Экраны",
+    navLanguages: "Языки",
+    navSafety: "Безопасность",
+    navFaq: "Вопросы",
+    languageAria: "Язык",
+    heroKicker: "Via · тест безопасности игрового ядра",
+    heroTitle: "Тихий тестовый слой поверх игры.",
+    heroLead: "Via — слой отображения для авторизованного тестирования совместимости и стабильности. Тихий интерфейс, поддержка English, 中文 и Русский.",
+    metaAndroid: "Android 8.0+",
+    metaRoot: "Нужен root",
+    metaScope: "Только авторизованный тест",
+    ctaPrimary: "Посмотреть интерфейс",
+    ctaSecondary: "Границы теста",
+    statLanguages: "Языки",
+    statLanguagesNote: "English · 中文 · Русский",
+    statBlur: "Размытие фона",
+    statBlurNote: "Обои целиком, один слой стекла",
+    statOpacity: "Прозрачность стекла",
+    statOpacityNote: "Белый блик, прозрачно",
+    statGlassBlur: "Размытие стекла",
+    statGlassBlurNote: "Те же обои, один слой стекла",
+    layerTag: "Тестовый слой",
+    layerTitle: "Один слой. Шесть контролируемых решений.",
+    layerLead: "Страница описывает интерфейс и границы теста, а не внутреннее устройство. Слой остаётся тихим, тест — авторизованным.",
+    cap1Title: "Сначала игра, потом слой",
+    cap1Body: "Тестовый слой появляется только после выхода игры на передний план. Без лишнего процесса игры и перехвата фокуса.",
+    cap1a: "Игра",
+    cap1b: "передний план",
+    cap1c: "тестовый слой",
+    cap2Title: "Проверка границ перед сеансом",
+    cap2Body: "Короткая проверка подтверждает авторизованную тестовую среду до появления слоя. Внутренние пути и детали реализации на странице не публикуются.",
+    cap2Meta: "авторизованная среда · без внутренних деталей",
+    cap3Title: "Стекло только для отображения",
+    cap3Body: "Стекло остаётся прозрачным поверх обоев. За карточками нет отдельной тёмной панели.",
+    cap3Meta: "9 dp · 50% · 24%",
+    cap4Title: "Состояние сеанса остаётся на устройстве",
+    cap4Body: "Тестовое состояние хранится на устройстве. На сайте нет формы аккаунта и не публикуются учётные данные.",
+    cap4Meta: "локальное состояние · без формы аккаунта",
+    cap5Title: "Раскладка под устройство",
+    cap5Body: "Раскладка подстраивается под разрешение и DPI. Внутренние пути не показываются.",
+    cap5Meta: "раскладка · DPI · пропорции",
+    cap6Title: "Три языка, одна раскладка",
+    cap6Body: "English — по умолчанию при первом запуске; 中文 и Русский используют одну раскладку.",
+    screensTag: "Реальные экраны",
+    screensTitle: "Интерфейс в работе.",
+    screensLead: "English, 中文 и Русский на одном устройстве. Одна раскладка, три языка.",
+    shot1Title: "English",
+    shot1Body: "При первом запуске по умолчанию English. Первый экран — выбор языка.",
+    shot2Title: "中文",
+    shot2Body: "Выбор языка и полный китайский интерфейс.",
+    shot3Title: "Русский",
+    shot3Body: "Та же раскладка с русскими подписями.",
+    screensNote: "Снято на одном устройстве Xiaomi. Язык снимков следует настройке приложения.",
+    langTag: "Язык",
+    langTitle: "Сначала English. Потом ваш.",
+    langLead: "Первый экран — выбор языка. English выбран по умолчанию; выбор хранится локально и сохраняется после перезапуска. Те же три языка используются во всём интерфейсе.",
+    langEnDesc: "По умолчанию при первом запуске. Меняется в настройках интерфейса.",
+    langDefault: "По умолчанию",
+    langZhDesc: "Полный китайский интерфейс. Выбирается при первом запуске, меняется в настройках интерфейса.",
+    langRuDesc: "Полный русский интерфейс. Выбирается при первом запуске, меняется в настройках интерфейса.",
+    safetyTag: "Безопасность",
+    safetyTitle: "Границы теста.",
+    safetyLead: "Публичная страница тестовой программы. Здесь только интерфейс и то, что остаётся закрытым: внутренние пути, учётные данные и детали реализации.",
+    safety1Title: "Только интерфейс",
+    safety1Body: "Страница показывает экраны и поддержку языков.",
+    safety2Title: "Без внутренних путей",
+    safety2Body: "Пути и детали реализации не публикуются.",
+    safety3Title: "Авторизованный диапазон",
+    safety3Body: "Только авторизованное тестирование совместимости и стабильности.",
+    safetyFacts: "Границы безопасности",
+    faqTag: "Вопросы",
+    faqTitle: "Перед тестом.",
+    faqLead: "Границы и условия, без деталей реализации.",
+    faq0Q: "Что не публикуется на сайте?",
+    faq0A: "Внутренние пути, учётные данные и детали реализации.",
+    faq1Q: "Что такое Via?",
+    faq1A: "Слой отображения для авторизованного тестирования совместимости и стабильности.",
+    faq2Q: "Нужен ли Via root?",
+    faq2A: "Да. Системные функции отображения зависят от root. Приложение показывает состояние устройства на главной карточке.",
+    faq3Q: "Меняет ли он содержимое игры?",
+    faq3A: "Нет. Только слой отображения; содержимое игры не меняется.",
+    faq4Q: "Сайт собирает данные аккаунта?",
+    faq4A: "Нет. На сайте нет входа, формы аккаунта и полей для учётных данных.",
+    faq5Q: "Как сменить язык?",
+    faq5A: "Настройки → Настройки интерфейса → Язык. Интерфейс следует новому языку.",
+    faq6Q: "Почему English по умолчанию?",
+    faq6A: "При первом запуске открывается English, затем выбор предлагает 中文 и Русский. Выбор запоминается.",
+    footSub: "Слой отображения для тестирования безопасности игрового ядра от Xiangshi Studio.",
+    footNote: "Android · нужен root · English / 中文 / Русский"
+  }
+};
+
+const STORAGE_KEY = "via-site-language";
+
+function readStoredLang() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    return saved && I18N[saved] ? saved : "en";
+  } catch (_) {
+    return "en";
+  }
+}
+
+function applyLanguage(lang) {
+  if (!I18N[lang]) lang = "en";
+  document.documentElement.lang = lang === "zh" ? "zh-CN" : lang;
+  document.body.dataset.lang = lang;
+  document.title = I18N[lang].pageTitle;
+
+  const meta = document.querySelector('meta[name="description"]');
+  if (meta) meta.setAttribute("content", I18N[lang].metaDescription);
+
+  document.querySelectorAll("[data-i18n]").forEach((el) => {
+    const key = el.getAttribute("data-i18n");
+    const value = I18N[lang][key];
+    if (typeof value === "string") el.innerHTML = value;
+  });
+
+  document.querySelectorAll("[data-i18n-aria]").forEach((el) => {
+    const key = el.getAttribute("data-i18n-aria");
+    const value = I18N[lang][key];
+    if (typeof value === "string") el.setAttribute("aria-label", value);
+  });
+
+  document.querySelectorAll("[data-lang]").forEach((btn) => {
+    btn.setAttribute("aria-pressed", btn.getAttribute("data-lang") === lang ? "true" : "false");
+  });
+
+  try { localStorage.setItem(STORAGE_KEY, lang); } catch (_) {}
+}
+
+document.querySelectorAll("[data-lang]").forEach((btn) => {
+  btn.addEventListener("click", () => applyLanguage(btn.getAttribute("data-lang")));
+});
+
+applyLanguage(readStoredLang());
+</script>
+</body>
+</html>
