@@ -397,7 +397,7 @@ details p{margin:0;padding:0 44px 24px 0;color:#687174;font-size:13px;line-heigh
         <h1 data-i18n="heroTitle">A quieter test layer over the game.</h1>
         <p class="hero-lead" data-i18n="heroLead">Via is a display layer for authorized game compatibility and stability testing. It keeps the interface quiet and supports English, 中文 and Русский.</p>
         <div class="hero-meta">
-          <span>v0.6.29</span><i></i>
+          <span>v0.6.30</span><i></i>
           <span data-i18n="metaAndroid">Android 8.0+</span><i></i>
           <span data-i18n="metaRoot">Root required</span><i></i>
           <span data-i18n="metaScope">Authorized testing only</span>
@@ -575,6 +575,7 @@ details p{margin:0;padding:0 44px 24px 0;color:#687174;font-size:13px;line-heigh
         <details><summary data-i18n="faq5Q">How do I change the language?</summary><p data-i18n="faq5A">Settings → Interface settings → Language. The interface follows the new language.</p></details>
         <details><summary data-i18n="faq6Q">Why is English the default?</summary><p data-i18n="faq6A">A first launch starts in English; the picker then offers 中文 and Русский. The choice is remembered.</p></details>
         <details><summary data-i18n="faq7Q">How often can a random package be built?</summary><p data-i18n="faq7A">One clone build per device per day. Both build servers share the same quota; reinstalling or clearing data does not reset it.</p></details>
+        <details><summary data-i18n="faq8Q">Why does the game not open right after a HUD update?</summary><p data-i18n="faq8A">Via checks the cloud HUD version before launch. After an update, tap “开启 HUD” again; the game opens only after the local HUD passes the latest-version check.</p></details>
       </div>
     </div>
   </section>
@@ -587,7 +588,7 @@ details p{margin:0;padding:0 44px 24px 0;color:#687174;font-size:13px;line-heigh
       <div class="foot-sub" data-i18n="footSub">A display layer for game kernel assist safety testing by Xiangshi Studio.</div>
     </div>
     <div class="foot-meta">
-      <span>v0.6.29 · © 2026 Xiangshi Studio</span>
+      <span>v0.6.30 · © 2026 Xiangshi Studio</span>
       <span data-i18n="footNote">Android · root required · English / 中文 / Русский</span>
     </div>
   </div>
@@ -692,6 +693,8 @@ const I18N = {
     faq6A: "A first launch starts in English; the picker then offers 中文 and Русский. The choice is remembered.",
     faq7Q: "How often can a random package be built?",
     faq7A: "One clone build per device per day. Both build servers share the same quota; reinstalling or clearing data does not reset it.",
+    faq8Q: "Why does the game not open right after a HUD update?",
+    faq8A: "Via checks the cloud HUD version before launch. After an update, tap “开启 HUD” again; the game opens only after the local HUD passes the latest-version check.",
     footSub: "A display layer for game kernel assist safety testing by Xiangshi Studio.",
     footNote: "Android · root required · English / 中文 / Русский"
   },
@@ -791,6 +794,8 @@ const I18N = {
     faq6A: "首次启动先进入英文，语言弹窗提供中文与 Русский；选择会被记住。",
     faq7Q: "随机包名多久能打包一次？",
     faq7A: "每台设备每天只能打包 1 次。两台打包服务器共用次数，卸载重装或清数据都不会重置。",
+    faq8Q: "HUD 更新完成后，为什么游戏没有自动打开？",
+    faq8A: "Via 启动前会校验云端 HUD 版本。更新完成后请再次点击「开启 HUD」，本地 HUD 通过最新版校验后才会打开和平精英。",
     footSub: "相识工作室出品的游戏内核辅助安全测试显示层。",
     footNote: "Android · 需要 Root · English / 中文 / Русский"
   },
@@ -890,6 +895,8 @@ const I18N = {
     faq6A: "При первом запуске открывается English, затем выбор предлагает 中文 и Русский. Выбор запоминается.",
     faq7Q: "Как часто можно собрать случайный пакет?",
     faq7A: "Одна сборка клона на устройство в день. Оба сервера используют общую квоту; переустановка или очистка данных её не сбрасывают.",
+    faq8Q: "Почему игра не открывается сразу после обновления HUD?",
+    faq8A: "Via проверяет облачную версию HUD перед запуском. После обновления нажмите «开启 HUD» ещё раз; игра откроется только после проверки актуальной версии.",
     footSub: "Слой отображения для тестирования безопасности игрового ядра от Xiangshi Studio.",
     footNote: "Android · нужен root · English / 中文 / Русский"
   }
