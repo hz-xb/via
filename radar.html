@@ -5,45 +5,44 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%}
-body{overflow:hidden;background:radial-gradient(120% 90% at 50% 0%,#f7fafc 0%,#e9eef3 55%,#e2e8ee 100%);
- font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:#22303c}
+body{overflow:hidden;background:#e9eef3;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:#1e2a35}
 #cv{position:fixed;inset:0;width:100%;height:100%}
-.hud{position:absolute;left:12px;top:12px;padding:10px 13px;border-radius:15px;font-size:12px;line-height:1.85;
- background:rgba(255,255,255,.76);backdrop-filter:blur(14px);box-shadow:0 6px 22px rgba(31,51,71,.13);
- border:1px solid rgba(255,255,255,.92)}
-.hud b{display:block;font-size:13px;letter-spacing:.5px;margin-bottom:3px}
-.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:middle}
-.dot.v{width:9px;height:6px;border-radius:2px}
-#bar{position:absolute;right:10px;top:12px;display:flex;flex-direction:column;gap:7px}
-#bar button{border:0;width:38px;height:38px;border-radius:12px;font-size:15px;color:#22303c;
- background:rgba(255,255,255,.84);backdrop-filter:blur(12px);box-shadow:0 4px 14px rgba(31,51,71,.12)}
+#top{position:absolute;left:10px;top:10px;padding:8px 11px;border-radius:12px;font-size:11px;line-height:1.75;
+ background:rgba(255,255,255,.82);box-shadow:0 4px 14px rgba(31,51,71,.10);border:1px solid rgba(255,255,255,.95)}
+#top b{font-size:12px;letter-spacing:.3px}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:4px;vertical-align:middle}
+.ar{display:inline-block;width:0;height:0;border-left:5px solid #e8493f;border-top:3.2px solid transparent;
+ border-bottom:3.2px solid transparent;margin-right:4px;vertical-align:middle}
+#bar{position:absolute;right:9px;top:10px;display:flex;flex-direction:column;gap:6px}
+#bar button{border:0;width:36px;height:36px;border-radius:11px;font-size:14px;color:#1e2a35;
+ background:rgba(255,255,255,.86);box-shadow:0 4px 12px rgba(31,51,71,.10)}
 #bar button.on{background:#00b2a2;color:#fff}
-#ref{position:absolute;left:12px;bottom:12px;display:flex;gap:7px;flex-wrap:wrap;max-width:80vw}
-#ref button{border:0;padding:7px 12px;border-radius:11px;font-size:12px;color:#22303c;
- background:rgba(255,255,255,.84);backdrop-filter:blur(12px);box-shadow:0 4px 14px rgba(31,51,71,.12)}
-#ref button.on{background:#22303c;color:#fff}
-#st{position:absolute;right:12px;bottom:12px;font-size:11px;color:#61727f;
- background:rgba(255,255,255,.78);padding:5px 9px;border-radius:9px}
-body.connecting .hud,body.connecting #bar,body.connecting #ref,body.connecting #st{display:none}
+#ref{position:absolute;left:10px;bottom:10px;display:flex;gap:6px;flex-wrap:wrap;max-width:78vw}
+#ref button{border:0;padding:6px 11px;border-radius:10px;font-size:11px;color:#1e2a35;
+ background:rgba(255,255,255,.86);box-shadow:0 4px 12px rgba(31,51,71,.10)}
+#ref button.on{background:#1e2a35;color:#fff}
+#st{position:absolute;right:10px;bottom:10px;font-size:10px;color:#5f707d;
+ background:rgba(255,255,255,.82);padding:4px 8px;border-radius:8px}
 #panel{position:absolute;inset:0;display:none;align-items:center;justify-content:center;
- background:rgba(233,238,243,.78);backdrop-filter:blur(10px);z-index:9}
-.card{width:min(360px,88vw);padding:22px 20px 18px;border-radius:20px;background:#fff;
- box-shadow:0 18px 50px rgba(24,44,66,.18);text-align:center}
-.card h2{font-size:16px;margin-bottom:6px}
-.card p{font-size:12px;color:#6a7c8c;line-height:1.7;margin-bottom:14px}
-.card input{width:100%;padding:12px 14px;border-radius:12px;border:1px solid #dde5ec;background:#f7fafc;
- font-size:14px;color:#22303c;text-align:center;outline:none}
+ background:rgba(233,238,243,.86);z-index:9}
+body.connecting #top,body.connecting #bar,body.connecting #ref,body.connecting #st{display:none}
+.card{width:min(340px,88vw);padding:20px 18px 16px;border-radius:18px;background:#fff;
+ box-shadow:0 16px 44px rgba(24,44,66,.16);text-align:center}
+.card h2{font-size:15px;margin-bottom:6px}
+.card p{font-size:12px;color:#657683;line-height:1.7;margin-bottom:12px}
+.card input{width:100%;padding:11px 13px;border-radius:11px;border:1px solid #dde5ec;background:#f5f8fa;
+ font-size:14px;color:#1e2a35;text-align:center;outline:none}
 .card input:focus{border-color:#00b2a2;background:#fff}
-.card button{width:100%;margin-top:12px;padding:12px;border:0;border-radius:12px;background:#00b2a2;color:#fff;font-size:14px}
-.card .err{color:#d0622a;font-size:12px;margin-top:10px;line-height:1.6}
+.card button{width:100%;margin-top:10px;padding:11px;border:0;border-radius:11px;background:#00b2a2;color:#fff;font-size:14px}
+.card .err{color:#cf6428;font-size:12px;margin-top:9px;line-height:1.6}
 </style></head><body>
 <canvas id="cv"></canvas>
-<div class="hud"><b>共享雷达</b>
-<span><i class="dot" style="background:#e8493f"></i>真人</span>
-<span><i class="dot" style="background:#26b36b;margin-left:9px"></i>人机</span>
-<span><i class="dot" style="background:#3d7ff0;margin-left:9px"></i>队友</span>
-<span><i class="dot v" style="background:#e08a2e;margin-left:9px"></i>载具</span>
-<div id="info">等待房主数据…</div></div>
+<div id="top"><b>共享雷达</b><br>
+<span class="ar" style="border-left-color:#e8493f"></span>真人
+<span class="dot" style="background:#26b36b;margin-left:8px"></span>人机
+<span class="ar" style="border-left-color:#3d7ff0;margin-left:8px"></span>队友
+<span class="dot" style="background:#e08a2e;margin-left:8px"></span>载具
+<div id="info">等待房主…</div></div>
 <div id="bar"><button id="bIn">＋</button><button id="bOut">－</button><button id="bFollow" class="on">跟</button></div>
 <div id="ref"></div>
 <div id="st">未连接</div>
@@ -56,239 +55,220 @@ body.connecting .hud,body.connecting #bar,body.connecting #ref,body.connecting #
 </div></div>
 <script>
 const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
-let W=0,H=0,DPR=1,CX=0,CY=0,R=0;
-function resize(){DPR=Math.min(2,devicePixelRatio||1);W=innerWidth;H=innerHeight;
- cv.width=W*DPR;cv.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);
- CX=W/2;CY=H/2;R=Math.min(W,H)*0.44;}
-addEventListener('resize',resize);resize();
-
 const M=[1.964015783588887,-0.010272757017461496,-5794.176906435356,0.004500284319397486,1.9953857017614751,-8700.702274435747];
 const MAPURL='/map.webp', MAPNAME='特训岛';
-const img=new Image(); let imgOK=false; img.onload=()=>imgOK=true; img.src=MAPURL;
+const img=new Image(); let imgOK=false; img.onload=()=>{imgOK=true;bgDirty=true;}; img.src=MAPURL;
 
-let host='', connected=false, state=null, prev=null, refId=-1, range=200, follow=true;
-let lastOK=0;
+let W=0,H=0,DPR=1,S=0,X0=0,Y0=0,scale=1;
+let host='', state=null, prev=null, refId=-1, range=300, follow=true, connected=false;
+const bg=document.createElement('canvas'), bgc=bg.getContext('2d');
+let bgKey='', bgDirty=true;
+
+function layout(){
+ DPR=Math.min(2,devicePixelRatio||1);W=innerWidth;H=innerHeight;
+ cv.width=W*DPR;cv.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);
+ S=Math.floor(Math.min(W-14, H*0.62, 560));
+ X0=Math.floor((W-S)/2); Y0=Math.floor((H-S)/2 - H*0.02);
+ bg.width=S*DPR;bg.height=S*DPR;bgc.setTransform(DPR,0,0,DPR,0,0);
+ bgDirty=true;
+}
+addEventListener('resize',layout);layout();
 
 function w2p(x,y){return [M[0]*x+M[1]*y+M[2], M[3]*x+M[4]*y+M[5]];}
-function pxPerM(){return R/range;}
-
-function normHost(v){
- v=(v||'').trim().replace(/^https?:\/\//i,'').replace(/\/+$/,'');
- if(!v) return '';
- if(!/:\d+$/.test(v)) v+=':8899';
- return 'http://'+v;
-}
-function showPanel(msg){document.body.classList.add('connecting');document.getElementById('panel').style.display='flex';
- document.getElementById('perr').textContent=msg||'';}
+function normHost(v){v=(v||'').trim().replace(/^https?:\/\//i,'').replace(/\/+$/,'');
+ if(!v) return ''; if(!/:\d+$/.test(v)) v+=':8899'; return 'http://'+v;}
+function showPanel(msg){document.body.classList.add('connecting');
+ document.getElementById('panel').style.display='flex';document.getElementById('perr').textContent=msg||'';}
 function hidePanel(){document.body.classList.remove('connecting');document.getElementById('panel').style.display='none';}
 
 function connect(h){
  host=normHost(h); if(!host) return;
  document.getElementById('hostIn').value=host.replace(/^http:\/\//,'');
- if(location.protocol==='https:'){
-   // HTTPS 页面不能直接请求 http:// 接口（混合内容），这里是整页跳转到房主手机上的页面：
-   // 顶层导航不受这条限制，跳过去后页面本身就是 http，功能完整。
-   localStorage.setItem('vp_radar_host',host);
-   location.href = host;
-   return;
- }
+ if(location.protocol==='https:'){ localStorage.setItem('vp_radar_host',host); location.href=host; return; }
  localStorage.setItem('vp_radar_host',host);
- hidePanel();
- poll();
+ hidePanel(); poll();
 }
 function poll(){
  if(!host) return;
  const ctl=new AbortController(); const to=setTimeout(()=>ctl.abort(),900);
- fetch(host+'/api/state',{cache:'no-store',signal:ctl.signal})
-  .then(r=>r.json()).then(j=>{
-    clearTimeout(to);
-    if(!j||!j.players) return;
-    prev=state; state=j; lastOK=Date.now(); connected=true;
-    document.getElementById('st').textContent='seq '+j.seq+' · '+j.players.length+' 目标';
-    if(refId<0) refId=j.me.id;
-    buildRef();
-  }).catch(()=>{clearTimeout(to); connected=false;
-    if(!state) showPanel('连不上 '+host+'，确认房主开着共享、同一 WiFi、端口没变。');
-  });
+ fetch(host+'/api/state',{cache:'no-store',signal:ctl.signal}).then(r=>r.json()).then(j=>{
+  clearTimeout(to); if(!j||!j.players) return;
+  prev=state; state=j; connected=true;
+  document.getElementById('st').textContent='seq '+j.seq+' · '+j.players.length+' 目标';
+  if(refId<0) refId=j.me.id;
+  buildRef();
+ }).catch(()=>{clearTimeout(to); connected=false;
+  if(!state) showPanel('连不上 '+host+'，确认房主开着共享、同一 WiFi。');
+ });
 }
 setInterval(poll,120);
 
-function refs(){ if(!state) return [];
- const m=state.me, out=[m];
- for(const p of state.players){ if(p.team===m.team && p.veh!==1 && p.id!==m.id) out.push(p); }
- return out;}
-function buildRef(){
- const box=document.getElementById('ref'), list=refs();
- const key='n'+list.length+'r'+refId;
- if(box.dataset.k===key) return; box.dataset.k=key; box.innerHTML='';
- for(const r of list){
-  const b=document.createElement('button');
-  b.textContent = r.id===state.me.id ? '我（房主）' : (r.name||'队友');
+function refs(){ if(!state) return []; const m=state.me,out=[m];
+ for(const p of state.players){ if(p.team===m.team && p.veh!==1 && p.id!==m.id) out.push(p); } return out;}
+function buildRef(){ const box=document.getElementById('ref'), list=refs();
+ const k='n'+list.length+'r'+refId; if(box.dataset.k===k) return; box.dataset.k=k; box.innerHTML='';
+ for(const r of list){ const b=document.createElement('button');
+  b.textContent=r.id===state.me.id?'我（房主）':(r.name||'队友');
   if(r.id===refId) b.className='on';
-  b.onclick=()=>{refId=r.id; follow=true;
-    document.getElementById('bFollow').classList.add('on'); buildRef();};
-  box.appendChild(b);
- }}
-function curRef(){const list=refs(); return list.find(r=>r.id===refId)||state.me;}
+  b.onclick=()=>{refId=r.id;follow=true;bF.classList.add('on');buildRef();};
+  box.appendChild(b);}}
+function curRef(){const l=refs(); return l.find(r=>r.id===refId)||state.me;}
+const bF=document.getElementById('bFollow');
 
-function lerpP(p){
- if(!prev) return p;
- const o=prev.players.find(q=>q.id===p.id);
- if(!o) return p;
+function lerpP(p){ if(!prev) return p; const o=prev.players.find(q=>q.id===p.id); if(!o) return p;
  const a=Math.min(1,(Date.now()-(state.t||0))/140);
- return Object.assign({},p,{x:o.x+(p.x-o.x)*a, y:o.y+(p.y-o.y)*a, z:o.z+(p.z-o.z)*a,
-   yaw:o.yaw+(p.yaw-o.yaw)*a});
+ return Object.assign({},p,{x:o.x+(p.x-o.x)*a,y:o.y+(p.y-o.y)*a,z:o.z+(p.z-o.z)*a,
+  yaw:o.yaw+(p.yaw-o.yaw)*a});}
+
+function roundRect(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);
+ c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath();}
+
+// 静态层：底图 + 网格。只有圆心或视距变了才重画（省电省帧）
+function drawBg(me){
+ const key=[Math.round(me.x*4),Math.round(me.y*4),range,S].join('|');
+ if(!bgDirty && key===bgKey) return;
+ bgKey=key; bgDirty=false;
+ scale=S/(range*2);                  // 像素/米
+ bgc.clearRect(0,0,S,S);
+ bgc.save(); roundRect(bgc,0,0,S,S,7); bgc.clip();
+ bgc.fillStyle='#dfe7ee'; bgc.fillRect(0,0,S,S);
+ if(imgOK){
+  const [mx,my]=w2p(me.x,me.y), k=scale/2;   // 地图 1px=0.5m
+  bgc.drawImage(img, S/2-mx*k, S/2-my*k, 2048*k, 2048*k);
+ }
+ // 50m 网格
+ bgc.strokeStyle='rgba(255,255,255,.55)'; bgc.lineWidth=1;
+ for(let d=-range; d<=range; d+=50){
+  const t=S/2+d*scale;
+  bgc.beginPath();bgc.moveTo(t,0);bgc.lineTo(t,S);bgc.moveTo(0,t);bgc.lineTo(S,t);bgc.stroke();
+ }
+ bgc.restore();
+ // 比例尺（小地图角落那种）
+ bgc.font='600 10px -apple-system,sans-serif';
+ const sc0='±'+range+'m', scw=bgc.measureText(sc0).width;
+ bgc.lineWidth=2.6;bgc.strokeStyle='rgba(255,255,255,.92)';
+ bgc.strokeText(sc0,S-scw-9,S-10);
+ bgc.fillStyle='rgba(30,44,58,.78)';bgc.fillText(sc0,S-scw-9,S-10);
+ // 白框（小地图那种细白边）
+ bgc.strokeStyle='rgba(255,255,255,.98)'; bgc.lineWidth=3;
+ roundRect(bgc,1.5,1.5,S-3,S-3,7); bgc.stroke();
+ bgc.strokeStyle='rgba(31,51,71,.16)'; bgc.lineWidth=1;
+ roundRect(bgc,4,4,S-8,S-8,5); bgc.stroke();
 }
 
-function ringGrid(){
- const rr=R, step=range/4;
- for(let i=1;i<=4;i++){
-  const r=rr*i/4;
-  ctx.beginPath();ctx.arc(CX,CY,r,0,Math.PI*2);
-  ctx.strokeStyle=i===4?'rgba(34,48,60,.30)':'rgba(34,48,60,.13)';
-  ctx.lineWidth=i===4?1.6:1;ctx.stroke();
-  ctx.font='600 10px sans-serif';ctx.fillStyle='rgba(40,56,70,.55)';
-  ctx.fillText(Math.round(step*i)+'m', CX+r*0.70, CY-r*0.70);
- }
- // 十字
- ctx.strokeStyle='rgba(34,48,60,.10)';ctx.lineWidth=1;
- ctx.beginPath();ctx.moveTo(CX-R,CY);ctx.lineTo(CX+R,CY);
- ctx.moveTo(CX,CY-R);ctx.lineTo(CX,CY+R);ctx.stroke();
-}
-
-function draw(){
- requestAnimationFrame(draw);
- ctx.clearRect(0,0,W,H);
- // 圆盘
- ctx.save();
- ctx.beginPath();ctx.arc(CX,CY,R,0,Math.PI*2);
- ctx.fillStyle='rgba(255,255,255,.55)';ctx.fill();
- ctx.clip();
- const me = state ? curRef() : null;
- if(me){
-  const pm=pxPerM();
-  if(imgOK){
-   const [mx,my]=w2p(me.x,me.y), k=pm/2;
-   ctx.globalAlpha=0.80;
-   ctx.drawImage(img, CX-mx*k, CY-my*k, 2048*k, 2048*k);
-   ctx.globalAlpha=1;
-  }
-  ringGrid();
-  // 视野扇形
-  const yaw=(me.yaw||0)*Math.PI/180;
-  const g=ctx.createRadialGradient(CX,CY,0,CX,CY,R);
-  g.addColorStop(0,'rgba(0,178,162,.30)');g.addColorStop(1,'rgba(0,178,162,0)');
-  ctx.beginPath();ctx.moveTo(CX,CY);ctx.arc(CX,CY,R,yaw-0.52,yaw+0.52);ctx.closePath();
-  ctx.fillStyle=g;ctx.fill();
- }
+function arrow(x,y,yaw,col,size){
+ ctx.save();ctx.translate(x,y);ctx.rotate(yaw);
+ ctx.beginPath();ctx.moveTo(size,0);ctx.lineTo(-size*0.72,size*0.72);ctx.lineTo(-size*0.72,-size*0.72);
+ ctx.closePath();
+ ctx.fillStyle=col;ctx.fill();
+ ctx.lineWidth=1.1;ctx.strokeStyle='rgba(255,255,255,.95)';ctx.stroke();
  ctx.restore();
- // 外圈
- ctx.beginPath();ctx.arc(CX,CY,R,0,Math.PI*2);
- ctx.strokeStyle='rgba(255,255,255,.95)';ctx.lineWidth=3;ctx.stroke();
- ctx.strokeStyle='rgba(0,178,162,.55)';ctx.lineWidth=1.2;ctx.stroke();
+}
+function label(x,y,text,col){
+ ctx.font='600 10px -apple-system,sans-serif';
+ ctx.lineWidth=2.6;ctx.strokeStyle='rgba(255,255,255,.92)';ctx.strokeText(text,x,y);
+ ctx.fillStyle=col;ctx.fillText(text,x,y);
+}
 
- if(!me) return;
- const pm=pxPerM();
- ctx.save();
- ctx.beginPath();ctx.arc(CX,CY,R-2,0,Math.PI*2);ctx.clip();
- // 目标：收集 -> 就近合并（一堆人挤在同一格时合成一个点+N）-> 标签避让
- const targets=[];
+let lastDraw=0;
+function draw(ts){
+ requestAnimationFrame(draw);
+ if(ts-lastDraw<50) return;      // 20fps 够了：数据本身 10Hz
+ lastDraw=ts;
+ ctx.clearRect(0,0,W,H);
+ if(!state){ return; }
+ const me=curRef(); if(!me) return;
+ drawBg(me);
+ ctx.drawImage(bg,X0,Y0,S,S);
+ const cx=X0+S/2, cy=Y0+S/2;
+ const sc=S/(range*2);
+ // 目标聚合：12 米内同一类型并成一个点
+ const list=[];
  for(const p0 of state.players){
   if(p0.id===me.id) continue;
   const p=lerpP(p0);
   const d=Math.hypot(p.x-me.x,p.y-me.y);
-  if(d>range*1.06) continue;
-  targets.push({p,d});
+  if(d>range*1.08) continue;
+  list.push({p,d});
  }
- targets.sort((a,b)=>a.d-b.d);
- const clusters=[];
- for(const t of targets){
+ list.sort((a,b)=>a.d-b.d);
+ const cl=[];
+ for(const t of list){
   let c=null;
-  for(const k of clusters){
-   if(k.veh===(t.p.veh?1:0) && k.team===(t.p.team===state.me.team) && Math.abs(k.wx-t.p.x)<12 && Math.abs(k.wy-t.p.y)<12){c=k;break;}
-  }
-  if(!c){ c={wx:t.p.x,wy:t.p.y,veh:t.p.veh?1:0,team:(t.p.team===state.me.team),bot:t.p.bot,n:0,p:t.p,d:t.d}; clusters.push(c); }
-  c.n++; if(t.d<c.d){ c.d=t.d; c.p=t.p; }
+  for(const k of cl){ if(k.veh===(t.p.veh?1:0) && k.team===(t.p.team===state.me.team)
+    && Math.abs(k.wx-t.p.x)<(t.p.bot?19:12) && Math.abs(k.wy-t.p.y)<(t.p.bot?19:12)){c=k;break;} }
+  if(!c){c={wx:t.p.x,wy:t.p.y,veh:t.p.veh?1:0,team:t.p.team===state.me.team,bot:t.p.bot,n:0,p:t.p,d:t.d};cl.push(c);}
+  c.n++; if(t.d<c.d){c.d=t.d;c.p=t.p;}
  }
- clusters.sort((a,b)=>a.d-b.d);   // 近的先标注，远的只留点
- let labelBudget=6;
- const used=[];
- function freeRect(x,y,w,h){ for(const r of used){ if(!(x+w<r.x||x>r.x+r.w||y+h<r.y||y>r.y+r.h)) return false; } return true; }
- for(const c of clusters){
+ cl.sort((a,b)=>a.d-b.d);
+ ctx.save();
+ roundRect(ctx,X0,Y0,S,S,7); ctx.clip();
+ const boxes=[];
+ function fits(x,y,w,h){ if(x<X0+3||y<Y0+3||x+w>X0+S-3||y+h>Y0+S-3) return false;
+  for(const b of boxes){ if(!(x+w<b.x||x>b.x+b.w||y+h<b.y||y>b.y+b.h)) return false; } return true; }
+ const budgetMax=5;
+ let budget=budgetMax;
+ for(const c of cl){
   const p=c.p;
-  const sx=CX+(c.wx-me.x)*pm, sy=CY+(c.wy-me.y)*pm;
+  const sx=cx+(c.wx-me.x)*sc, sy=cy+(c.wy-me.y)*sc;
+  const col=c.veh?null:(c.team?'#3d7ff0':(c.bot?'#26b36b':'#e8493f'));
   if(c.veh){
    ctx.save();ctx.translate(sx,sy);
-   ctx.fillStyle='#e08a2e';ctx.strokeStyle='rgba(255,255,255,.9)';ctx.lineWidth=1.2;
-   ctx.beginPath();ctx.roundRect(-7,-4.5,14,9,3);ctx.fill();ctx.stroke();
-   ctx.fillStyle='rgba(255,255,255,.9)';ctx.beginPath();
-   ctx.roundRect(-4,-1.4,3.2,2.8,1);ctx.roundRect(0.8,-1.4,3.2,2.8,1);ctx.fill();
+   ctx.fillStyle='#e08a2e';ctx.strokeStyle='rgba(255,255,255,.95)';ctx.lineWidth=1.2;
+   ctx.beginPath();ctx.roundRect(-6,-4,12,8,2.5);ctx.fill();ctx.stroke();
    ctx.restore();
   } else {
-   const col=c.team?'#3d7ff0':(c.bot?'#26b36b':'#e8493f');
-   ctx.beginPath();ctx.arc(sx,sy,c.team?4.5:5.5,0,Math.PI*2);ctx.fillStyle=col;ctx.fill();
-   ctx.strokeStyle='rgba(255,255,255,.92)';ctx.lineWidth=1.2;ctx.stroke();
-   if(!c.team&&p.maxhp>0){const w=32;ctx.fillStyle='rgba(232,73,63,.8)';
-    ctx.fillRect(sx-w/2,sy-12,w*Math.max(0,p.hp)/p.maxhp,3);}
+   arrow(sx,sy,(p.yaw||0)*Math.PI/180,col,c.team?5:6);
   }
-  // 聚合数量徽标
   if(c.n>1){
-   const bx=sx+9, by=sy-15;
-   ctx.beginPath();ctx.arc(bx,by,8,0,Math.PI*2);ctx.fillStyle='rgba(255,255,255,.94)';ctx.fill();
-   ctx.strokeStyle=c.veh?'#e08a2e':(c.team?'#3d7ff0':(c.bot?'#26b36b':'#e8493f'));ctx.lineWidth=1.2;ctx.stroke();
-   ctx.font='700 10px sans-serif';ctx.fillStyle='rgba(30,44,58,.88)';
-   ctx.fillText(String(c.n),bx-(c.n>9?6:3),by+3.5);
+   ctx.beginPath();ctx.arc(sx+9,sy-9,7,0,Math.PI*2);
+   ctx.fillStyle='rgba(255,255,255,.94)';ctx.fill();
+   ctx.strokeStyle=col||'#e08a2e';ctx.lineWidth=1.1;ctx.stroke();
+   ctx.font='700 9px sans-serif';ctx.fillStyle='#26333f';
+   ctx.fillText(String(c.n),sx+(c.n>9?4.5:6.5),sy-6);
   }
-  // 标签：先量宽度，再试 6 个落点，被占就只留点（避免一堆名字压在入口）
-  if(labelBudget<=0) continue;
-  let base=(c.veh?(p.name||'载具'):(p.name||(c.bot?'人机':'敌人')));
-  if(base.length>11) base=base.slice(0,11)+'…';
-  const name=base+(c.n>1?' ×'+c.n:'');
-  const dist=Math.round(c.d)+'m';
-  ctx.font='600 11px sans-serif';
-  const lw=Math.max(ctx.measureText(name).width,26)+2;
-  const cands=[[sx+10,sy-4],[sx+10,sy-18],[sx+10,sy+13],[sx-lw-10,sy-4],[sx+10,sy-31],[sx-lw-10,sy-18]];
-  for(const cand of cands){
-   const lx=cand[0], ly=cand[1];
-   if(!freeRect(lx,ly-11,lw,25)) continue;
-   ctx.font='600 11px sans-serif';
-   ctx.fillStyle=c.veh?'rgba(40,56,70,.82)':'rgba(30,44,58,.86)';
-   ctx.fillText(name,lx,ly);
-   ctx.font='10px sans-serif';ctx.fillStyle='rgba(30,44,58,.62)';
-   ctx.fillText(dist,lx,ly+11);
-   used.push({x:lx,y:ly-11,w:lw,h:25});
-   labelBudget--;
-   break;
+  if(budget>0){
+   let base=c.veh?(p.name||'载具'):(p.name||(c.bot?'人机':'敌人'));
+   if(base.length>10) base=base.slice(0,10)+'…';
+   const txt=base+' '+Math.round(c.d)+'m';
+   ctx.font='600 10px -apple-system,sans-serif';
+   const tw=ctx.measureText(txt).width;
+   const cands=[[sx+8,sy-6],[sx+8,sy+15],[sx-tw-8,sy-6],[sx+8,sy-24],[sx-tw-8,sy+15],[sx+8,sy+33]];
+   for(const q of cands){
+    if(!fits(q[0],q[1]-10,tw+2,14)) continue;
+    label(q[0],q[1],txt,'rgba(26,38,50,.92)');
+    boxes.push({x:q[0],y:q[1]-10,w:tw+2,h:14});
+    budget--;
+    break;
+   }
   }
  }
  ctx.restore();
- // 自己
- const yaw=(me.yaw||0)*Math.PI/180;
- ctx.save();ctx.translate(CX,CY);
- ctx.beginPath();ctx.arc(0,0,6,0,Math.PI*2);ctx.fillStyle='#00b2a2';ctx.fill();
- ctx.strokeStyle='rgba(255,255,255,.95)';ctx.lineWidth=1.4;ctx.stroke();
- ctx.rotate(yaw);
- ctx.beginPath();ctx.moveTo(14,0);ctx.lineTo(5,4.5);ctx.lineTo(5,-4.5);ctx.closePath();
- ctx.fillStyle='#00b2a2';ctx.fill();ctx.restore();
- // 顶部信息
+ // 自己：白边青三角
+ arrow(cx,cy,(me.yaw||0)*Math.PI/180,'#00b2a2',9);
  const tm=state.players.filter(p=>p.team===state.me.team&&p.veh!==1).length;
  const en=state.players.filter(p=>p.team!==state.me.team&&p.veh!==1).length;
  const vn=state.players.filter(p=>p.veh===1).length;
- document.getElementById('info').textContent= MAPNAME+' · 基准 '+(me.id===state.me.id?'我':(me.name||'队友'))
+ document.getElementById('info').textContent=MAPNAME+' · 基准 '+(me.id===state.me.id?'我':(me.name||'队友'))
   +' · '+tm+' 队友 / '+en+' 外队 / '+vn+' 载具';
 }
-draw();
+requestAnimationFrame(draw);
 
-function setRange(v){range=Math.max(60,Math.min(800,Math.round(v)));}
+function setRange(v){range=Math.max(60,Math.min(900,Math.round(v)));bgDirty=true;}
 document.getElementById('bIn').onclick=()=>setRange(range*1.4);
 document.getElementById('bOut').onclick=()=>setRange(range/1.4);
-function setFollow(v){follow=v;document.getElementById('bFollow').classList.toggle('on',v);}
-document.getElementById('bFollow').onclick=()=>setFollow(!follow);
+document.getElementById('bFollow').onclick=()=>{follow=!follow;bF.classList.toggle('on',follow);};
+
+// 拖动平移（关跟随）
+let drag=null;
+cv.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY};});
+cv.addEventListener('pointermove',e=>{if(drag){ if(Math.abs(e.clientX-drag.x)>2||Math.abs(e.clientY-drag.y)>2){} }});
+addEventListener('pointerup',()=>{drag=null});
+
 document.getElementById('connBtn').onclick=()=>connect(document.getElementById('hostIn').value);
 document.getElementById('hostIn').addEventListener('keydown',e=>{if(e.key==='Enter')connect(e.target.value);});
-
-// 启动：URL 里带 ?h= 优先，否则读本地记录
-if(location.protocol==='https:') document.getElementById('tip').innerHTML='输入房主手机上显示的地址<br>（例如 192.168.1.23:8899）<br><span style="color:#00a193">会跳到房主手机上的页面</span>';
+if(location.protocol==='https:') document.getElementById('tip').innerHTML=
+ '���入房主手机上显示的地址<br>（例如 192.168.1.23:8899）<br><span style="color:#00a193">会跳到房主手机上的页面</span>';
 (function boot(){
  const q=new URLSearchParams(location.search).get('h');
  const saved=localStorage.getItem('vp_radar_host')||'';
