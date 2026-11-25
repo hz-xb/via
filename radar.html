@@ -1,125 +1,204 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#f1f4f8">
 <title>ViaPro 共享雷达</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;background:#edf1f5}
-body{overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",sans-serif;color:#1d2a36}
+:root{--ink:#1b2733;--sub:#66788a;--line:#e4eaf0;--acc:#00b2a2}
+html,body{height:100%;background:#f1f4f8;color:var(--ink)}
+body{overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",sans-serif;
+ -webkit-font-smoothing:antialiased}
 #cv{position:fixed;inset:0;width:100%;height:100%;display:block}
-#hud{position:absolute;left:10px;top:10px;display:flex;flex-direction:column;gap:6px;pointer-events:none}
-#pill{display:flex;align-items:center;gap:8px;height:34px;padding:0 12px;border-radius:17px;
- background:rgba(255,255,255,.92);box-shadow:0 2px 10px rgba(23,43,63,.10);font-size:12px;font-weight:600}
-#pill i{width:7px;height:7px;border-radius:50%;background:#00b2a2;box-shadow:0 0 0 3px rgba(0,178,162,.18)}
-#cnt{font-weight:400;color:#5d6f7d}
-#legend{display:flex;gap:12px;height:26px;padding:0 11px;border-radius:13px;align-items:center;font-size:11px;
- background:rgba(255,255,255,.86);box-shadow:0 2px 8px rgba(23,43,63,.08);color:#42545f}
-.tri{width:0;height:0;border-left:6px solid #e2493d;border-top:4px solid transparent;border-bottom:4px solid transparent;margin-right:4px}
-.sq{width:8px;height:5px;border-radius:1.5px;background:#e08a2e;margin-right:4px}
-#bar{position:absolute;right:10px;top:10px;display:flex;flex-direction:column;gap:8px}
-#bar button{width:38px;height:38px;border:0;border-radius:12px;font-size:15px;color:#22323f;
- background:rgba(255,255,255,.94);box-shadow:0 2px 10px rgba(23,43,63,.10)}
-#bar button:active{transform:scale(.96)}
-#bar button.on{background:#00b2a2;color:#fff;box-shadow:0 4px 14px rgba(0,178,162,.35)}
-#ref{position:absolute;left:10px;bottom:12px;display:flex;gap:6px;flex-wrap:wrap;max-width:76vw}
-#ref button{border:0;padding:7px 12px;border-radius:11px;font-size:11px;color:#22323f;font-weight:500;
- background:rgba(255,255,255,.92);box-shadow:0 2px 10px rgba(23,43,63,.10)}
-#ref button.on{background:#1d2a36;color:#fff}
-#st{position:absolute;right:10px;bottom:12px;font-size:10px;color:#6a7c89;background:rgba(255,255,255,.9);
- padding:5px 9px;border-radius:9px;box-shadow:0 2px 8px rgba(23,43,63,.07)}
-#panel{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(237,241,245,.9);z-index:9}
-body.connecting #hud,body.connecting #bar,body.connecting #ref,body.connecting #st{display:none}
-.card{width:min(330px,86vw);padding:22px 20px 18px;border-radius:20px;background:#fff;
+
+/* 顶栏 */
+#top{position:fixed;left:0;right:0;top:0;height:calc(46px + env(safe-area-inset-top));
+ padding:env(safe-area-inset-top) 12px 0;display:flex;align-items:center;gap:10px;z-index:5;
+ background:rgba(255,255,255,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+ border-bottom:1px solid rgba(20,40,60,.07)}
+#top .t{font-size:14px;font-weight:700;letter-spacing:.2px}
+#top .dot{width:7px;height:7px;border-radius:50%;background:#c9d4de;flex:0 0 auto}
+#top .dot.ok{background:var(--acc);box-shadow:0 0 0 3px rgba(0,178,162,.16)}
+#top .sum{font-size:11px;color:var(--sub);margin-left:auto;display:flex;gap:8px;align-items:center}
+#top .sum i{font-style:normal}
+#gear{width:32px;height:32px;border-radius:10px;border:0;background:#eef3f7;color:#3d4f5e;font-size:15px;display:grid;place-items:center}
+#gear:active{background:#e2eaf1}
+
+/* 底部 */
+#bottom{position:fixed;left:0;right:0;bottom:0;padding:8px 12px calc(10px + env(safe-area-inset-bottom));
+ display:flex;flex-direction:column;gap:8px;z-index:5;background:linear-gradient(to top,rgba(241,244,248,.96) 62%,rgba(241,244,248,0))}
+#mates{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+#mates::-webkit-scrollbar{display:none}
+#mates button{flex:0 0 auto;border:0;padding:7px 13px;border-radius:11px;font-size:12px;font-weight:500;
+ background:#fff;color:#2a3a48;box-shadow:0 1px 4px rgba(20,40,60,.08)}
+#mates button.on{background:var(--ink);color:#fff}
+#mates button.me{background:#e6f7f5;color:#0a8d82}
+#mates button.me.on{background:var(--acc);color:#fff}
+#status{display:flex;justify-content:space-between;font-size:10px;color:#7c8d9b;padding:0 2px}
+
+/* 悬浮控制 */
+#float{position:fixed;right:12px;top:calc(58px + env(safe-area-inset-top));display:flex;flex-direction:column;gap:8px;z-index:4}
+#float button{width:38px;height:38px;border:0;border-radius:12px;font-size:15px;color:#2a3a48;
+ background:rgba(255,255,255,.94);box-shadow:0 2px 10px rgba(20,40,60,.12)}
+#float button:active{transform:scale(.95)}
+#float button.on{background:var(--acc);color:#fff;box-shadow:0 4px 14px rgba(0,178,162,.32)}
+
+/* 设置面板 */
+#sheet{position:fixed;left:0;right:0;bottom:0;z-index:8;transform:translateY(102%);
+ transition:transform .26s cubic-bezier(.32,.72,.3,1);background:#fff;border-radius:18px 18px 0 0;
+ box-shadow:0 -12px 40px rgba(16,36,56,.18);max-height:78vh;display:flex;flex-direction:column}
+#sheet.open{transform:translateY(0)}
+#sheet .hd{display:flex;align-items:center;padding:14px 16px 10px}
+#sheet .hd h3{font-size:15px;font-weight:700}
+#sheet .hd .cls{margin-left:auto;font-size:12px;color:var(--acc);font-weight:600;border:0;background:none;padding:4px 6px}
+#sheet .bd{overflow-y:auto;padding:0 16px calc(18px + env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch}
+.grp{font-size:11px;color:#8b9aa7;margin:12px 2px 6px;letter-spacing:.3px}
+.row{display:flex;align-items:center;min-height:44px;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:0}
+.row .nm{font-size:13px}
+.row .ds{font-size:10px;color:#93a2ae;margin-top:1px}
+.row .val{margin-left:auto;font-size:11px;color:var(--sub);margin-right:10px;font-variant-numeric:tabular-nums}
+.sw{flex:0 0 auto;margin-left:auto;width:42px;height:25px;border-radius:13px;background:#dfe6ed;position:relative;transition:background .18s;border:0}
+.sw::after{content:"";position:absolute;top:2px;left:2px;width:21px;height:21px;border-radius:50%;background:#fff;
+ box-shadow:0 1px 3px rgba(0,0,0,.18);transition:left .18s}
+.sw.on{background:var(--acc)}
+.sw.on::after{left:19px}
+.sld{width:100%;margin:6px 0 2px;-webkit-appearance:none;height:22px;background:transparent}
+.sld::-webkit-slider-runnable-track{height:4px;border-radius:2px;background:#e2e9f0}
+.sld::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:#fff;
+ border:2px solid var(--acc);margin-top:-8px;box-shadow:0 1px 4px rgba(0,0,0,.15)}
+.blk{padding:4px 0 10px;border-bottom:1px solid var(--line)}
+.blk:last-child{border-bottom:0}
+
+/* 连接卡 */
+#panel{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:20;
+ background:rgba(241,244,248,.94);backdrop-filter:blur(6px)}
+body.connecting #top,body.connecting #float,body.connecting #bottom{display:none}
+body.connecting #panel{display:flex}
+.card{width:min(330px,88vw);padding:22px 20px 18px;border-radius:20px;background:#fff;
  box-shadow:0 18px 50px rgba(20,40,60,.16);text-align:center}
 .card h2{font-size:16px;margin-bottom:6px}
 .card p{font-size:12px;color:#657683;line-height:1.75;margin-bottom:14px}
 .card input{width:100%;padding:12px 14px;border-radius:12px;border:1px solid #dfe7ee;background:#f5f8fa;
- font-size:15px;color:#1d2a36;text-align:center;outline:none}
-.card input:focus{border-color:#00b2a2;background:#fff}
-.card button{width:100%;margin-top:12px;padding:12px;border:0;border-radius:12px;background:#00b2a2;color:#fff;font-size:15px;font-weight:600}
+ font-size:15px;text-align:center;outline:none}
+.card input:focus{border-color:var(--acc);background:#fff}
+.card button{width:100%;margin-top:12px;padding:12px;border:0;border-radius:12px;background:var(--acc);color:#fff;font-size:15px;font-weight:600}
 .card .err{color:#cf6428;font-size:12px;margin-top:10px;line-height:1.6}
 </style></head><body>
 <canvas id="cv"></canvas>
-<div id="hud">
- <div id="pill"><i></i>共享雷达 <span id="cnt">连接中…</span></div>
- <div id="legend">
-  <span class="tri"></span>真人
-  <span class="tri" style="border-left-color:#2fb36a;margin-left:6px"></span>人机
-  <span class="tri" style="border-left-color:#3d7ff0;margin-left:6px"></span>队友
-  <span class="sq" style="margin-left:6px"></span>载具
- </div>
+
+<div id="top">
+ <span class="dot" id="dot"></span><span class="t">共享雷达</span>
+ <span class="sum"><i id="c1">—</i><i id="c2"></i><i id="c3"></i></span>
+ <button id="gear">⚙</button>
 </div>
-<div id="bar"><button id="bIn">＋</button><button id="bOut">－</button><button id="bFollow" class="on">跟</button></div>
-<div id="ref"></div>
-<div id="st">未连接</div>
+
+<div id="float">
+ <button id="bIn">＋</button><button id="bOut">－</button><button id="bFollow" class="on">跟</button>
+</div>
+
+<div id="bottom">
+ <div id="mates"></div>
+ <div id="status"><span id="stL">未连接</span><span id="stR"></span></div>
+</div>
+
+<div id="sheet">
+ <div class="hd"><h3>显示设置</h3><button class="cls" id="cls">完成</button></div>
+ <div class="bd" id="sheetBd"></div>
+</div>
+
 <div id="panel"><div class="card">
 <h2>连接房主</h2>
 <p id="tip">输入房主手机上的地址<br>（例如 192.168.1.23:8899）</p>
 <input id="hostIn" placeholder="IP:端口" autocomplete="off" spellcheck="false">
 <button id="connBtn">连接</button>
 <div class="err" id="perr"></div></div></div>
-<script>
-const cv=document.getElementById('cv'), ctx=cv.getContext('2d',{alpha:true});
-const M=[1.964015783588887,-0.010272757017461496,-5794.176906435356,0.004500284319397486,1.9953857017614751,-8700.702274435747];
-const MAPURL='/map.webp', MAPNAME='特训岛';
-const img=new Image(); let imgOK=false; img.onload=()=>{imgOK=true;}; img.src=MAPURL;
 
-let W=0,H=0,DPR=1,S=0,X=0,Y=0,range=400;
-let host='', state=null, prev=null, prevAt=0, curAt=0, refId=-1, follow=true, panX=0, panY=0;
-const ov=document.createElement('canvas'), ovc=ov.getContext('2d');   // 网格/暗角/标尺缓存
-let ovKey='';
+<script>
+const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+const M=[1.964015783588887,-0.010272757017461496,-5794.176906435356,0.004500284319397486,1.9953857017614751,-8700.702274435747];
+const img=new Image(); let imgOK=false; img.onload=()=>imgOK=true; img.src='/map.webp';
+
+const DEF={map:1,grid:1,names:1,dist:1,arrow:1,teammate:1,bot:1,veh:1,cluster:1,hp:1,matesOnly:0,near:1,labelMax:4,range:400};
+let cfg=Object.assign({},DEF);
+try{cfg=Object.assign({},DEF,JSON.parse(localStorage.getItem('vp_cfg')||'{}'));}catch(e){}
+function save(){localStorage.setItem('vp_cfg',JSON.stringify(cfg));}
+
+let W=0,H=0,DPR=1,S=0,X=0,Y=0;
+let host='', state=null, prev=null, curAt=0, prevAt=0, refId=-1, panX=0, panY=0, drag=null, sheetOpen=false;
+const ov=document.createElement('canvas'), ovc=ov.getContext('2d'); let ovKey='';
 
 function layout(){
- DPR=Math.min(2,devicePixelRatio||1);
- W=innerWidth; H=innerHeight;
- cv.width=Math.round(W*DPR); cv.height=Math.round(H*DPR);
- ctx.setTransform(DPR,0,0,DPR,0,0);
- S=Math.floor(Math.min(W-20, H*0.58, 560));
- X=Math.round((W-S)/2); Y=Math.round((H-S)/2 - H*0.03);
- ov.width=Math.round(S*DPR); ov.height=Math.round(S*DPR);
- ovc.setTransform(DPR,0,0,DPR,0,0);
- ovKey='';
+ DPR=Math.min(2,devicePixelRatio||1); W=innerWidth; H=innerHeight;
+ cv.width=Math.round(W*DPR); cv.height=Math.round(H*DPR); ctx.setTransform(DPR,0,0,DPR,0,0);
+ const yTop=56, yBot=Math.max(96, H-96);
+ S=Math.floor(Math.min(W-24, (yBot-yTop)*0.94, 560));
+ X=Math.round((W-S)/2);
+ Y=Math.round(yTop+Math.max(0,(yBot-yTop-S)/2));
+ ov.width=Math.round(S*DPR); ov.height=Math.round(S*DPR); ovc.setTransform(DPR,0,0,DPR,0,0); ovKey='';
 }
 addEventListener('resize',layout); layout();
 
 function w2p(x,y){return [M[0]*x+M[1]*y+M[2], M[3]*x+M[4]*y+M[5]];}
 function normHost(v){v=(v||'').trim().replace(/^https?:\/\//i,'').replace(/\/+$/,'');
  if(!v)return ''; if(!/:\d+$/.test(v))v+=':8899'; return 'http://'+v;}
-function showPanel(m){document.body.classList.add('connecting');document.getElementById('panel').style.display='flex';
- document.getElementById('perr').textContent=m||'';}
-function hidePanel(){document.body.classList.remove('connecting');document.getElementById('panel').style.display='none';}
-function connect(h){ host=normHost(h); if(!host)return;
- document.getElementById('hostIn').value=host.replace(/^http:\/\//,'');
- if(location.protocol==='https:'){localStorage.setItem('vp_radar_host',host);location.href=host;return;}
- localStorage.setItem('vp_radar_host',host); hidePanel(); poll();}
-function poll(){ if(!host)return;
- const ctl=new AbortController(); const to=setTimeout(()=>ctl.abort(),800);
- fetch(host+'/api/state',{cache:'no-store',signal:ctl.signal}).then(r=>r.json()).then(j=>{
-  clearTimeout(to); if(!j||!j.players)return;
-  const now=performance.now();
-  if(state){prev=state;prevAt=curAt;} else {prev=j;prevAt=now;}
-  curAt=now; state=j;
-  document.getElementById('st').textContent='seq '+j.seq+' · '+j.players.length;
-  if(refId<0)refId=j.me.id; buildRef();
- }).catch(()=>{clearTimeout(to);
-  if(!state) showPanel('连不上 '+host+'，确认房主开着共享、同一 Wi-Fi。');});}
-setInterval(poll,120);
-
-function refs(){if(!state)return[];const m=state.me,o=[m];
+function showPanel(m){document.body.classList.add('connecting');document.getElementById('perr').textContent=m||'';}
+function hidePanel(){document.body.classList.remove('connecting');}
+let ws=null, wsOK=false, pollTimer=null, retryT=null;
+function applyState(j,now){
+ if(!j||!j.players)return;
+ if(state){prev=state;prevAt=curAt;} else prev={players:j.players.map(p=>({id:p.id,x:p.x,y:p.y,yaw:p.yaw}))};
+ curAt=now||performance.now(); state=j;
+ document.getElementById('dot').className='dot ok';
+ document.getElementById('stL').textContent=(wsOK?'实时 ':'连接 ')+host.replace('http://','');
+ document.getElementById('stR').textContent='seq '+j.seq+' · '+j.players.length+' 目标'+(j.cl?' · '+(j.cl-1)+' 人同看':'');
+ if(refId<0||!j.players.some(p=>p.id===refId&&p.team===j.me.team))refId=j.me.id;
+ buildMates();
+}
+function pollOnce(){
+ if(!host)return;
+ const ctl=new AbortController(), to=setTimeout(()=>ctl.abort(),800);
+ fetch(host+'/api/state',{cache:'no-store',signal:ctl.signal}).then(r=>r.json()).then(j=>{clearTimeout(to);applyState(j);})
+ .catch(()=>{clearTimeout(to); if(!state)showPanel('连不上 '+host+'，确认房主开着共享、同一 Wi-Fi。');});
+}
+function startPolling(){
+ if(pollTimer)return; pollTimer=setInterval(pollOnce,120);
+}
+function startWS(){
+ stopWS();
+ if(!host)return;
+ let url=host.replace('http://','ws://')+'/ws';
+ try{ws=new WebSocket(url);}catch(e){startPolling();return;}
+ const guard=setTimeout(()=>{ if(!wsOK){ startPolling(); if(ws){try{ws.close();}catch(e){} } } },2500);
+ ws.onopen=()=>{wsOK=true;clearTimeout(guard);if(pollTimer){clearInterval(pollTimer);pollTimer=null;}};
+ ws.onmessage=e=>{try{applyState(JSON.parse(e.data));}catch(err){}};
+ ws.onerror=()=>{};
+ ws.onclose=()=>{
+  wsOK=false;ws=null;
+  if(!pollTimer){ setTimeout(()=>{ if(host&&state) startWS(); },1600); }
+ };
+}
+function stopWS(){if(ws){try{ws.onclose=null;ws.close();}catch(e){}ws=null;}wsOK=false;}
+function connect(h){host=normHost(h); if(!host)return;
+ const raw=host.replace(/^http:\/\//,''); document.getElementById('hostIn').value=raw;
+ localStorage.setItem('vp_radar_host',host);
+ if(location.protocol==='https:'){location.href=host;return;}
+ hidePanel(); startWS(); pollOnce();}
+function mates(){if(!state)return[];const m=state.me,o=[m];
  for(const p of state.players) if(p.team===m.team&&p.veh!==1&&p.id!==m.id) o.push(p); return o;}
-const bF=document.getElementById('bFollow');
-function buildRef(){const box=document.getElementById('ref'),l=refs();
- const k=l.length+'#'+refId; if(box.dataset.k===k)return; box.dataset.k=k; box.innerHTML='';
+function buildMates(){
+ const box=document.getElementById('mates'), l=mates();
+ const k=l.map(r=>r.id).join(',')+'|'+refId; if(box.dataset.k===k)return; box.dataset.k=k; box.innerHTML='';
  for(const r of l){const b=document.createElement('button');
   b.textContent=r.id===state.me.id?'我（房主）':(r.name||'队友');
-  if(r.id===refId)b.className='on';
-  b.onclick=()=>{refId=r.id;follow=true;bF.classList.add('on');buildRef();};
-  box.appendChild(b);}}
-function curRef(){const l=refs();return l.find(r=>r.id===refId)||state.me;}
+  b.className=(r.id===state.me.id?'me ':'')+(r.id===refId?'on':'');
+  b.onclick=()=>{refId=r.id;panX=0;panY=0;buildMates();};
+  box.appendChild(b);}
+}
+function curRef(){if(!state)return null;const l=mates();return l.find(r=>r.id===refId)||state.me;}
 
-// 平滑：指数逼近（40ms 时间常数），既有惯性又不拖手
-function smooth(list,now){
- const k=1-Math.exp(-Math.max(0,now-curAt)/45);
+function smooth(list){
+ const k=1-Math.exp(-Math.max(0,performance.now()-curAt)/45);
  for(const p of list){
   const o=prev&&prev.players?prev.players.find(q=>q.id===p.id):null;
   if(o){p._x=p.x+(o.x-p.x)*k; p._y=p.y+(o.y-p.y)*k; p._yaw=p.yaw+(o.yaw-p.yaw)*k;}
@@ -128,161 +207,235 @@ function smooth(list,now){
  return list;
 }
 
-function ovlay(){ const key=range+'|'+S;
- if(ovKey===key)return; ovKey=key;
+function ovlay(){
+ const key=[S,cfg.range,cfg.grid,cfg.map].join('|'); if(ovKey===key)return; ovKey=key;
  const c=ovc; c.clearRect(0,0,S,S);
- // 网格：100m
- c.strokeStyle='rgba(255,255,255,.42)'; c.lineWidth=1;
- const step=100; for(let d=-range;d<=range;d+=step){ const t=S/2+d*(S/(2*range));
-  c.beginPath();c.moveTo(t,0);c.lineTo(t,S);c.moveTo(0,t);c.lineTo(S,t);c.stroke(); }
- // 暗角
- const g=c.createRadialGradient(S/2,S/2,S*0.34,S/2,S/2,S*0.78);
- g.addColorStop(0,'rgba(18,32,44,0)');g.addColorStop(1,'rgba(18,32,44,.16)');
+ if(cfg.grid){
+  c.strokeStyle='rgba(255,255,255,.40)'; c.lineWidth=1;
+  for(let d=-cfg.range;d<=cfg.range;d+=100){ const t=S/2+d*(S/(2*cfg.range));
+   c.beginPath();c.moveTo(t,0);c.lineTo(t,S);c.moveTo(0,t);c.lineTo(S,t);c.stroke(); }
+  c.strokeStyle='rgba(255,255,255,.66)';
+  c.beginPath();c.moveTo(S/2,0);c.lineTo(S/2,S);c.moveTo(0,S/2);c.lineTo(S,S/2);c.stroke();
+ }
+ const g=c.createRadialGradient(S/2,S/2,S*0.36,S/2,S/2,S*0.78);
+ g.addColorStop(0,'rgba(16,30,42,0)');g.addColorStop(1,'rgba(16,30,42,.15)');
  c.fillStyle=g;c.fillRect(0,0,S,S);
  // 比例尺
  c.font='600 10px -apple-system,sans-serif';
- const t=range+'m', tw=c.measureText(t).width;
+ const t=cfg.range+'m', tw=c.measureText(t).width;
  c.strokeStyle='rgba(255,255,255,.95)';c.lineWidth=2.6;c.strokeText(t,S-tw-10,S-9);
- c.fillStyle='rgba(28,42,54,.8)';c.fillText(t,S-tw-10,S-9);
- // 北（小胶囊，压在地图上也看得清）
- c.fillStyle='rgba(255,255,255,.94)';
- c.beginPath(); c.roundRect(S/2-11,8,22,17,8); c.fill();
- c.fillStyle='#1f2f3c'; c.font='700 11px -apple-system,sans-serif'; c.fillText('N',S/2-3.6,21);
+ c.fillStyle='rgba(26,40,52,.85)';c.fillText(t,S-tw-10,S-9);
+ // 指北
+ c.fillStyle='rgba(255,255,255,.94)';c.beginPath();c.roundRect(S/2-11,8,22,17,8);c.fill();
+ c.fillStyle='#1f2f3c';c.font='700 11px -apple-system,sans-serif';c.fillText('N',S/2-3.6,21);
 }
 
 function tri(c,x,y,yaw,col,size){
- // 三角 + 白描边：小地图上那种朝向箭头
- c.save(); c.translate(x,y); c.rotate(yaw);
- c.beginPath(); c.moveTo(size,0); c.lineTo(-size*.82,size*.72); c.lineTo(-size*.82,-size*.72); c.closePath();
- c.fillStyle=col; c.fill();
- c.lineWidth=1.3; c.strokeStyle='rgba(255,255,255,.96)'; c.stroke();
- c.restore();
+ c.save();c.translate(x,y);c.rotate(yaw);
+ c.beginPath();c.moveTo(size,0);c.lineTo(-size*.82,size*.7);c.lineTo(-size*.82,-size*.7);c.closePath();
+ c.fillStyle=col;c.fill();c.lineWidth=1.3;c.strokeStyle='rgba(255,255,255,.96)';c.stroke();c.restore();
 }
-
+function dotmk(c,x,y,col,r){c.beginPath();c.arc(x,y,r,0,Math.PI*2);c.fillStyle=col;c.fill();
+ c.lineWidth=1.3;c.strokeStyle='rgba(255,255,255,.96)';c.stroke();}
 function rr(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);
  c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath();}
 
-function draw(ts){
+function draw(){
  requestAnimationFrame(draw);
- if(!state) return;
- const me=curRef(); if(!me) return;
- const now=performance.now();
- smooth(state.players,now);
+ if(!state)return;
+ const me=curRef(); if(!me)return;
+ smooth(state.players);
  me._x=me.x; me._y=me.y;
 
  ctx.clearRect(0,0,W,H);
- // 面板阴影（只在面板外画一次，低开销）
  ctx.save();
- ctx.shadowColor='rgba(20,38,56,.18)'; ctx.shadowBlur=26; ctx.shadowOffsetY=10;
+ ctx.shadowColor='rgba(18,36,54,.16)';ctx.shadowBlur=24;ctx.shadowOffsetY=9;
  ctx.fillStyle='#fff'; rr(ctx,X,Y,S,S,13); ctx.fill();
  ctx.restore();
 
  ctx.save(); rr(ctx,X,Y,S,S,13); ctx.clip();
- // 底图：一次 drawImage 裁剪贴图（GPU 缩放，别逐帧重绘整张 2048）
- ctx.fillStyle='#dde5ec'; ctx.fillRect(X,Y,S,S);
- const ppm=2, sc=S/(2*range);
+ if(cfg.map){ctx.fillStyle='#dfe7ee';ctx.fillRect(X,Y,S,S);}else{ctx.fillStyle='#eaf0f5';ctx.fillRect(X,Y,S,S);}
+
+ const sc=S/(2*cfg.range), ppm=2;
  const [mx,my]=w2p(me._x+panX, me._y+panY);
- if(imgOK){
-  let sx=mx-range*ppm, sy=my-range*ppm;
-  let sw=2*range*ppm, sh=sw, dx=X, dy=Y, dw=S, dh=S;
-  const k=sc/ppm;                       // 源像素 -> 屏幕像素
-  if(sx<0){const c=-sx; sx=0; sw-=c; dx+=c*k; dw-=c*k;}
-  if(sy<0){const c=-sy; sy=0; sh-=c; dy+=c*k; dh-=c*k;}
-  if(sx+sw>2048){const c=sx+sw-2048; sw-=c; dw-=c*k;}
-  if(sy+sh>2048){const c=sy+sh-2048; sh-=c; dh-=c*k;}
+ if(cfg.map&&imgOK){
+  let sx=mx-cfg.range*ppm, sy=my-cfg.range*ppm, sw=2*cfg.range*ppm, sh=sw, dx=X,dy=Y,dw=S,dh=S;
+  const k=sc/ppm;
+  if(sx<0){const c=-sx;sx=0;sw-=c;dx+=c*k;dw-=c*k;}
+  if(sy<0){const c=-sy;sy=0;sh-=c;dy+=c*k;dh-=c*k;}
+  if(sx+sw>2048){const c=sx+sw-2048;sw-=c;dw-=c*k;}
+  if(sy+sh>2048){const c=sy+sh-2048;sh-=c;dh-=c*k;}
   if(sw>0&&sh>0&&dw>0&&dh>0) ctx.drawImage(img,sx,sy,sw,sh,dx,dy,dw,dh);
  }
- ovlay();
- ctx.drawImage(ov,X,Y,S,S);
+ ovlay(); ctx.drawImage(ov,X,Y,S,S);
 
  // 目标
  const list=[];
- for(const p of state.players){ if(p.id===me.id)continue;
-  const d=Math.hypot(p._x-me._x,p._y-me._y); if(d>range*1.06)continue;
-  list.push({p,d}); }
+ for(const p of state.players){
+  if(p.id===me.id)continue;
+  const isMate=p.team===state.me.team&&p.veh!==1;
+  if(p.veh===1&&!cfg.veh)continue;
+  if(isMate&&!cfg.teammate)continue;
+  if(cfg.matesOnly&&!isMate)continue;
+  if(!isMate&&p.veh!==1&&p.bot&&!cfg.bot)continue;
+  const d=Math.hypot(p._x-me._x,p._y-me._y); if(d>cfg.range*1.06)continue;
+  list.push({p,d,isMate});
+ }
  list.sort((a,b)=>a.d-b.d);
- // 聚拢：同类型 12m（人机 19m）合一个点
+
  const cl=[];
- for(const t of list){ let c=null;
-  for(const k of cl){ if(k.veh===(t.p.veh?1:0)&&k.team===(t.p.team===state.me.team)
-    &&Math.abs(k.wx-t.p._x)<(t.p.bot?19:12)&&Math.abs(k.wy-t.p._y)<(t.p.bot?19:12)){c=k;break;} }
-  if(!c){c={wx:t.p._x,wy:t.p._y,veh:t.p.veh?1:0,team:t.p.team===state.me.team,bot:t.p.bot,n:0,p:t.p,d:t.d};cl.push(c);}
+ for(const t of list){
+  let c=null;
+  if(cfg.cluster){for(const k2 of cl){
+   if(k2.veh===(t.p.veh?1:0)&&k2.isMate===t.isMate&&k2.bot===!!t.p.bot
+    &&Math.abs(k2.wx-t.p._x)<(t.p.bot?19:12)&&Math.abs(k2.wy-t.p._y)<(t.p.bot?19:12)){c=k2;break;}}}
+  if(!c){c={wx:t.p._x,wy:t.p._y,veh:t.p.veh?1:0,isMate:t.isMate,bot:!!t.p.bot,p:t.p,d:t.d,n:0};cl.push(c);}
   c.n++; if(t.d<c.d){c.d=t.d;c.p=t.p;}
  }
  cl.sort((a,b)=>a.d-b.d);
- const boxes=[{x:X+S/2-15,y:Y+S/2-15,w:30,h:30}]; let budget=5;   // 中心留白：标签不压自己
+
+ const boxes=[{x:X+S/2-15,y:Y+S/2-15,w:30,h:30}]; let budget=cfg.names?cfg.labelMax:0;
+ const nearEnemy=cfg.near?(list.find(t=>!t.isMate&&t.p.veh!==1)||null):null;
+
  for(const c of cl){
   const sx=X+S/2+(c.wx-me._x-panX)*sc, sy=Y+S/2+(c.wy-me._y-panY)*sc;
+  const col=c.isMate?'#3d7ff0':(c.bot?'#2fb36a':'#e2493d');
+  if(nearEnemy&&c.p===nearEnemy.p&&!c.isMate){
+   ctx.beginPath();ctx.arc(sx,sy,12,0,Math.PI*2);ctx.strokeStyle='rgba(226,73,61,.55)';ctx.lineWidth=2;ctx.stroke();
+  }
   if(c.veh){
-   ctx.fillStyle='#e08a2e'; ctx.strokeStyle='rgba(255,255,255,.96)'; ctx.lineWidth=1.3;
-   rr(ctx,sx-6,sy-4,12,8,2.5); ctx.fill(); ctx.stroke();
-  } else {
-   const col=c.team?'#3d7ff0':(c.bot?'#2fb36a':'#e2493d');
-   tri(ctx,sx,sy,(c.p._yaw||0)*Math.PI/180,col,c.team?5.2:6);
+   ctx.fillStyle='#e08a2e';ctx.strokeStyle='rgba(255,255,255,.96)';ctx.lineWidth=1.3;
+   rr(ctx,sx-6,sy-4,12,8,2.5);ctx.fill();ctx.stroke();
+  }else if(cfg.arrow){
+   const r=Math.max(0.42,Math.min(1,(c.d/cfg.range)*1.6));   // 远处略缩，避免糊成一团
+   tri(ctx,sx,sy,(c.p._yaw||0)*Math.PI/180,col,c.isMate?(4.2+2.2*r):(4.6+2.6*r));
+  }else{
+   dotmk(ctx,sx,sy,col,3.6);
+  }
+  if(cfg.hp&&!c.veh&&c.p.maxhp>0){
+   const w=13,h=2.6, y0=sy+7;
+   ctx.fillStyle='rgba(255,255,255,.85)';rr(ctx,sx-w/2-1,y0-1,w+2,h+2,2);ctx.fill();
+   const ra=Math.max(0,Math.min(1,c.p.hp/c.p.maxhp));
+   ctx.fillStyle=ra>.6?'#39c07a':(ra>.3?'#e8a53a':'#e2493d');
+   rr(ctx,sx-w/2,y0,w*ra,h,1.4);ctx.fill();
   }
   if(c.n>1){
    ctx.beginPath();ctx.arc(sx+8,sy-8,7,0,Math.PI*2);
-   ctx.fillStyle='rgba(255,255,255,.96)';ctx.fill();
-   ctx.strokeStyle=c.veh?'#e08a2e':(c.team?'#3d7ff0':(c.bot?'#2fb36a':'#e2493d'));
-   ctx.lineWidth=1.2;ctx.stroke();
-   ctx.font='700 9px -apple-system,sans-serif'; ctx.fillStyle='#1d2a36';
+   ctx.fillStyle='rgba(255,255,255,.97)';ctx.fill();
+   ctx.lineWidth=1.2;ctx.strokeStyle=c.veh?'#e08a2e':col;ctx.stroke();
+   ctx.font='700 9px -apple-system,sans-serif';ctx.fillStyle='#1b2733';
    ctx.fillText(String(c.n),sx+(c.n>9?4:6),sy-5);
   }
-  if(budget>0&&c.d<range*0.94){
+  if(budget>0&&c.d<cfg.range*0.96&&cfg.names){
    let nm=c.veh?(c.p.name||'载具'):(c.p.name||(c.bot?'人机':'敌人'));
-   if(nm.length>9) nm=nm.slice(0,9)+'…';
-   const txt=nm+' '+Math.round(c.d)+'m';
+   if(nm.length>10)nm=nm.slice(0,10)+'…';
+   if(!cfg.dist)nm=nm;
+   const txt=cfg.dist?nm+' '+Math.round(c.d)+'m':nm;
    ctx.font='600 10px -apple-system,sans-serif';
    const tw=ctx.measureText(txt).width+12, th=17;
-   const cands=[[sx+9,sy-th/2],[sx-tw-9,sy-th/2],[sx+9,sy-th-8],[sx+9,sy+8],[sx-tw-9,sy-th-8]];
+   const cands=[[sx+9,sy-th/2],[sx-tw-9,sy-th/2],[sx+9,sy-th-7],[sx+9,sy+7],[sx-tw-9,sy-th-7],[sx-tw-9,sy+7]];
    for(const q of cands){
-    const lx=Math.max(X+3,Math.min(X+S-tw-3,q[0])), ly=Math.max(Y+3,Math.min(Y+S-th-3,q[1]));
+    const lx=Math.max(X+4,Math.min(X+S-tw-4,q[0])), ly=Math.max(Y+26,Math.min(Y+S-th-6,q[1]));
     let ok=true;
-    for(const b of boxes){ if(!(lx+tw<b.x||lx>b.x+b.w||ly+th<b.y||ly>b.y+b.h)){ok=false;break;} }
-    if(!ok) continue;
-    ctx.fillStyle='rgba(255,255,255,.9)'; rr(ctx,lx,ly,tw,th,8); ctx.fill();
-    ctx.fillStyle='#20303d'; ctx.fillText(txt,lx+6,ly+12);
-    boxes.push({x:lx,y:ly,w:tw,h:th}); budget--;
-    break;
+    for(const b of boxes){if(!(lx+tw<b.x||lx>b.x+b.w||ly+th<b.y||ly>b.y+b.h)){ok=false;break;}}
+    if(!ok)continue;
+    ctx.fillStyle='rgba(255,255,255,.92)';rr(ctx,lx,ly,tw,th,8);ctx.fill();
+    ctx.fillStyle='#1b2733';ctx.fillText(txt,lx+6,ly+12);
+    boxes.push({x:lx,y:ly,w:tw,h:th});budget--;break;
    }
   }
  }
- // 自己：白色光环 + 青三角
+ // 自己
  const yaw=(me.yaw||0)*Math.PI/180;
- ctx.beginPath();ctx.arc(X+S/2,Y+S/2,11,0,Math.PI*2);
- ctx.fillStyle='rgba(0,178,162,.16)';ctx.fill();
+ ctx.beginPath();ctx.arc(X+S/2,Y+S/2,12,0,Math.PI*2);ctx.fillStyle='rgba(0,178,162,.15)';ctx.fill();
  tri(ctx,X+S/2,Y+S/2,yaw,'#00b2a2',10);
  ctx.restore();
 
- // 边框（小地图那种白圈）
- ctx.lineWidth=3; ctx.strokeStyle='rgba(255,255,255,.98)'; rr(ctx,X+1.5,Y+1.5,S-3,S-3,13); ctx.stroke();
- ctx.lineWidth=1; ctx.strokeStyle='rgba(28,46,62,.12)'; rr(ctx,X+3.5,Y+3.5,S-7,S-7,11); ctx.stroke();
+ ctx.lineWidth=3;ctx.strokeStyle='rgba(255,255,255,.98)';rr(ctx,X+1.5,Y+1.5,S-3,S-3,13);ctx.stroke();
+ ctx.lineWidth=1;ctx.strokeStyle='rgba(26,44,60,.12)';rr(ctx,X+3.5,Y+3.5,S-7,S-7,11);ctx.stroke();
 
- // 顶部计数
  const tm=state.players.filter(p=>p.team===state.me.team&&p.veh!==1).length;
  const en=state.players.filter(p=>p.team!==state.me.team&&p.veh!==1).length;
  const vn=state.players.filter(p=>p.veh===1).length;
- document.getElementById('cnt').textContent=
-  (me.id===state.me.id?'我':(me.name||'队友'))+' · '+tm+'队 / '+en+'敌 / '+vn+'车';
+ document.getElementById('c1').textContent=tm+'队';
+ document.getElementById('c2').textContent=en+'敌';
+ document.getElementById('c3').textContent=vn+'车';
 }
 requestAnimationFrame(draw);
 
-function setRange(v){range=Math.max(80,Math.min(900,Math.round(v/10)*10));}
-document.getElementById('bIn').onclick=()=>setRange(range*1.5);
-document.getElementById('bOut').onclick=()=>setRange(range/1.5);
-bF.onclick=()=>{panX=0;panY=0;follow=true;bF.classList.add('on');};
-let drag=null;
-cv.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY,px:panX,py:panY};follow=false;bF.classList.remove('on');});
+// ---- 设置面板
+const DEFS=[
+ ['g','地图'],['map','底图'],['grid','网格'],['names','名字'],['dist','距离'],['arrow','朝向箭头'],
+ ['hp','血量条'],['cluster','近处聚合'],['teammate','显示队友'],['bot','显示人机'],['veh','显示载具'],
+ ['matesOnly','仅显示本队'],['near','高亮最近敌人']
+];
+function buildSheet(){
+ const bd=document.getElementById('sheetBd'); bd.innerHTML='';
+ const add=(el)=>{const d=document.createElement('div');d.className='row';d.appendChild(el);bd.appendChild(d);};
+ const grp=t=>{const g=document.createElement('div');g.className='grp';g.textContent=t;bd.appendChild(g);};
+ grp('画面');
+ const rng=document.createElement('div');rng.className='blk';
+ rng.innerHTML='<div style="display:flex;align-items:center"><span class="nm">雷达范围</span>'+
+  '<span class="val" id="rngV" style="margin-left:auto">'+cfg.range+' 米</span></div>'+
+  '<input class="sld" id="rngS" type="range" min="80" max="900" step="10" value="'+cfg.range+'">';
+ bd.appendChild(rng);
+ document.getElementById('rngS').oninput=e=>{cfg.range=+e.target.value;
+  document.getElementById('rngV').textContent=cfg.range+' 米';save();};
+ grp('分享');
+ const sh=document.createElement('div');sh.className='row';
+ sh.innerHTML='<div><div class="nm">把地址发给队友</div><div class="ds">'+host.replace('http://','')+'</div></div>';
+ const cp=document.createElement('button');cp.textContent='复制';cp.style.cssText='margin-left:auto;border:0;background:#eaf6f4;color:#0a8d82;font-weight:600;font-size:12px;padding:8px 14px;border-radius:10px';
+ cp.onclick=()=>{const t=host.replace('http://','');
+  const done=()=>{cp.textContent='已复制';setTimeout(()=>cp.textContent='复制',1400);};
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(done).catch(done);
+  else {const i=document.createElement('input');i.value=t;document.body.appendChild(i);i.select();document.execCommand('copy');i.remove();done();}};
+ sh.appendChild(cp);bd.appendChild(sh);
+
+ grp('显示');
+ for(const [k,label] of DEFS.slice(1)){
+  const r=document.createElement('div');r.className='row';
+  const l=document.createElement('div');
+  const desc={map:'关闭后只画点，省性能',grid:'100 米方格与十字线',names:'目标名称标签',
+   dist:'标签后附实时距离',arrow:'三角箭头表示人物朝向',hp:'目标下方血量细条',
+   cluster:'12 米内同类合并成一点',teammate:'蓝色队友点位',bot:'绿色人机点位',veh:'橙色载具方块',
+   matesOnly:'把外队全部隐掉，只看自己队',near:'最近一个敌人外圈描红'}[k]||'';
+  l.innerHTML='<div class="nm">'+label+'</div><div class="ds">'+desc+'</div>';
+  const sw=document.createElement('button'); sw.className='sw'+(cfg[k]?' on':'');
+  sw.onclick=()=>{cfg[k]=cfg[k]?0:1;sw.classList.toggle('on',!!cfg[k]);ovKey='';save();};
+  r.appendChild(l);r.appendChild(sw);bd.appendChild(r);
+ }
+ grp('标签');
+ const lb=document.createElement('div');lb.className='blk';
+ lb.innerHTML='<div style="display:flex;align-items:center"><span class="nm">最多标签数</span>'+
+  '<span class="val" id="lbV" style="margin-left:auto">'+cfg.labelMax+' 个</span></div>'+
+  '<input class="sld" id="lbS" type="range" min="0" max="8" step="1" value="'+cfg.labelMax+'">';
+ bd.appendChild(lb);
+ document.getElementById('lbS').oninput=e=>{cfg.labelMax=+e.target.value;
+  document.getElementById('lbV').textContent=cfg.labelMax+' 个';save();};
+}
+buildSheet();
+function toggleSheet(v){sheetOpen=v;document.getElementById('sheet').classList.toggle('open',v);}
+document.getElementById('gear').onclick=()=>toggleSheet(!sheetOpen);
+document.getElementById('cls').onclick=()=>toggleSheet(false);
+
+function setRange(v){cfg.range=Math.max(80,Math.min(900,Math.round(v/10)*10));save();ovKey='';
+ const rs=document.getElementById('rngS');if(rs){rs.value=cfg.range;document.getElementById('rngV').textContent=cfg.range+' 米';}}
+document.getElementById('bIn').onclick=()=>setRange(cfg.range*1.5);
+document.getElementById('bOut').onclick=()=>setRange(cfg.range/1.5);
+const bF=document.getElementById('bFollow');
+bF.onclick=()=>{panX=0;panY=0;bF.classList.add('on');};
+cv.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY,px:panX,py:panY};bF.classList.remove('on');});
 cv.addEventListener('pointermove',e=>{if(!drag)return;
- panX=drag.px-(e.clientX-drag.x)/(S/(2*range)); panY=drag.py-(e.clientY-drag.y)/(S/(2*range));});
-addEventListener('pointerup',()=>{drag=null;});
+ panX=drag.px-(e.clientX-drag.x)/(S/(2*cfg.range));panY=drag.py-(e.clientY-drag.y)/(S/(2*cfg.range));});
+addEventListener('pointerup',()=>drag=null);
 
 document.getElementById('connBtn').onclick=()=>connect(document.getElementById('hostIn').value);
 document.getElementById('hostIn').addEventListener('keydown',e=>{if(e.key==='Enter')connect(e.target.value);});
-if(location.protocol==='https:') document.getElementById('tip').innerHTML=
+if(location.protocol==='https:')document.getElementById('tip').innerHTML=
  '输入房主手机上显示的地址<br>（例如 192.168.1.23:8899）<br><span style="color:#00a193">会跳到房主手机上的页面</span>';
 (function boot(){
  const q=new URLSearchParams(location.search).get('h');
+ if(new URLSearchParams(location.search).get('sheet')==='1')toggleSheet(true);
  const saved=localStorage.getItem('vp_radar_host')||'';
  if(q){connect(q);return;}
  if(saved){document.getElementById('hostIn').value=saved.replace(/^http:\/\//,'');connect(saved);return;}
