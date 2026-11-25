@@ -112,7 +112,11 @@ body.connecting #panel{display:flex}
 <p id="tip">输入房主手机上的地址<br>（例如 192.168.1.23:8899）</p>
 <input id="hostIn" placeholder="IP:端口" autocomplete="off" spellcheck="false">
 <button id="connBtn">连接</button>
-<div class="err" id="perr"></div></div></div>
+<div class="err" id="perr"></div>
+<div id="diag" style="display:none;margin-top:12px;text-align:left;font-size:11px;color:#5c6e7c;line-height:1.7;
+ background:#f6f9fb;border:1px solid #e6eef4;border-radius:12px;padding:10px 12px"></div>
+<button id="retryBtn" style="display:none;margin-top:10px;background:#eef4f9;color:#2b3d4b">重新连接</button>
+</div></div>
 
 <script>
 const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
@@ -142,7 +146,35 @@ addEventListener('resize',layout); layout();
 function w2p(x,y){return [M[0]*x+M[1]*y+M[2], M[3]*x+M[4]*y+M[5]];}
 function normHost(v){v=(v||'').trim().replace(/^https?:\/\//i,'').replace(/\/+$/,'');
  if(!v)return ''; if(!/:\d+$/.test(v))v+=':8899'; return 'http://'+v;}
-function showPanel(m){document.body.classList.add('connecting');document.getElementById('perr').textContent=m||'';}
+function showPanel(m){
+ document.body.classList.add('connecting');
+ document.getElementById('perr').textContent=m||'';
+ const dg=document.getElementById('diag'), rb=document.getElementById('retryBtn');
+ if(!m){dg.style.display='none';rb.style.display='none';return;}
+ dg.style.display='block';rb.style.display='block';
+ document.getElementById('dgSrc').textContent=location.href.split('?')[0];
+ document.getElementById('dgDst').textContent=host||'—';
+ const p=document.getElementById('dgProbe');
+ if(!host){p.textContent='等待输入地址';return;}
+ if(location.protocol==='https:'){p.textContent='https 页面不能直接探测 http，需要先跳到房主页面';return;}
+ p.textContent='探测中…';
+ const t0=performance.now();
+ const im=new Image();
+ im.onload=()=>{p.textContent='端口通（能取到地图），服务在跑 —— 那问题在页面/接口，点重新连接';};
+ im.onerror=()=>{p.textContent='取不到 /map.webp —— 端口没开或地址不对（'+(performance.now()-t0|0)+'ms）';};
+ im.src=host+'/map.webp?_='+Date.now();
+}
+function diagInit(){
+ const dg=document.getElementById('diag');
+ dg.innerHTML='<div>当前页面：<b id="dgSrc">—</b></div><div>目标地址：<b id="dgDst">—</b></div>'+
+  '<div>探测结果：<b id="dgProbe">—</b></div>'+
+  '<div style="margin-top:8px;color:#3d5162">按顺序排查：<br>'+
+  '1. 房主端 设置→网络雷达 是否已开、显示的是哪个 IP<br>'+
+  '2. 两台手机是否连同一个 Wi-Fi（路由器开了「访客网络/AP 隔离」会互相看不见）<br>'+
+  '3. 直接把 http://IP:8899 粘到浏览器地址栏，能不能出地图<br>'+
+  '4. 队友手机别开 VPN、代理、私人 DNS</div>';
+}
+document.getElementById('retryBtn').onclick=()=>{if(host){hidePanel();startWS();pollOnce();}};
 function hidePanel(){document.body.classList.remove('connecting');}
 let ws=null, wsOK=false, pollTimer=null, retryT=null;
 function applyState(j,now){
@@ -159,7 +191,8 @@ function pollOnce(){
  if(!host)return;
  const ctl=new AbortController(), to=setTimeout(()=>ctl.abort(),800);
  fetch(host+'/api/state',{cache:'no-store',signal:ctl.signal}).then(r=>r.json()).then(j=>{clearTimeout(to);applyState(j);})
- .catch(()=>{clearTimeout(to); if(!state)showPanel('连不上 '+host+'，确认房主开着共享、同一 Wi-Fi。');});
+ .catch(err=>{clearTimeout(to);
+  if(!state)showPanel('连不上 '+host+'（'+(err&&err.name?err.name:'网络错误')+'），按下面顺序查：');});
 }
 function startPolling(){
  if(pollTimer)return; pollTimer=setInterval(pollOnce,120);
@@ -180,9 +213,15 @@ function startWS(){
 }
 function stopWS(){if(ws){try{ws.onclose=null;ws.close();}catch(e){}ws=null;}wsOK=false;}
 function connect(h){host=normHost(h); if(!host)return;
+ setTimeout(()=>{ if(!state&&!wsOK) showPanel('5 秒没收到任何数据，检查房主端是否开着共享：'); },5000);
  const raw=host.replace(/^http:\/\//,''); document.getElementById('hostIn').value=raw;
  localStorage.setItem('vp_radar_host',host);
- if(location.protocol==='https:'){location.href=host;return;}
+ if(location.protocol==='https:'){
+  // 跳到房主手机自带的 http 页面（顶层跳转不受混合内容限制）
+  showPanel('正在打开 '+host.replace('http://','')+' …\n如果浏览器提示「无法访问此网站」，就是房主那边服务没开或 IP 不对');
+  setTimeout(()=>{location.href=host;},350);
+  return;
+ }
  hidePanel(); startWS(); pollOnce();}
 function mates(){if(!state)return[];const m=state.me,o=[m];
  for(const p of state.players) if(p.team===m.team&&p.veh!==1&&p.id!==m.id) o.push(p); return o;}
@@ -433,6 +472,7 @@ document.getElementById('connBtn').onclick=()=>connect(document.getElementById('
 document.getElementById('hostIn').addEventListener('keydown',e=>{if(e.key==='Enter')connect(e.target.value);});
 if(location.protocol==='https:')document.getElementById('tip').innerHTML=
  '输入房主手机上显示的地址<br>（例如 192.168.1.23:8899）<br><span style="color:#00a193">会跳到房主手机上的页面</span>';
+diagInit();
 (function boot(){
  const q=new URLSearchParams(location.search).get('h');
  if(new URLSearchParams(location.search).get('sheet')==='1')toggleSheet(true);
