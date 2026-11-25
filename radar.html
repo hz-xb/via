@@ -191,35 +191,75 @@ function draw(){
  const pm=pxPerM();
  ctx.save();
  ctx.beginPath();ctx.arc(CX,CY,R-2,0,Math.PI*2);ctx.clip();
- // 目标
+ // 目标：收集 -> 就近合并（一堆人挤在同一格时合成一个点+N）-> 标签避让
+ const targets=[];
  for(const p0 of state.players){
   if(p0.id===me.id) continue;
   const p=lerpP(p0);
-  const dx=(p.x-me.x)*pm, dy=(p.y-me.y)*pm;
   const d=Math.hypot(p.x-me.x,p.y-me.y);
   if(d>range*1.06) continue;
-  const sx=CX+dx, sy=CY+dy;
-  const team=p.team===state.me.team;
-  if(p.veh===1){
+  targets.push({p,d});
+ }
+ targets.sort((a,b)=>a.d-b.d);
+ const clusters=[];
+ for(const t of targets){
+  let c=null;
+  for(const k of clusters){
+   if(k.veh===(t.p.veh?1:0) && k.team===(t.p.team===state.me.team) && Math.abs(k.wx-t.p.x)<12 && Math.abs(k.wy-t.p.y)<12){c=k;break;}
+  }
+  if(!c){ c={wx:t.p.x,wy:t.p.y,veh:t.p.veh?1:0,team:(t.p.team===state.me.team),bot:t.p.bot,n:0,p:t.p,d:t.d}; clusters.push(c); }
+  c.n++; if(t.d<c.d){ c.d=t.d; c.p=t.p; }
+ }
+ clusters.sort((a,b)=>a.d-b.d);   // 近的先标注，远的只留点
+ let labelBudget=6;
+ const used=[];
+ function freeRect(x,y,w,h){ for(const r of used){ if(!(x+w<r.x||x>r.x+r.w||y+h<r.y||y>r.y+r.h)) return false; } return true; }
+ for(const c of clusters){
+  const p=c.p;
+  const sx=CX+(c.wx-me.x)*pm, sy=CY+(c.wy-me.y)*pm;
+  if(c.veh){
    ctx.save();ctx.translate(sx,sy);
    ctx.fillStyle='#e08a2e';ctx.strokeStyle='rgba(255,255,255,.9)';ctx.lineWidth=1.2;
    ctx.beginPath();ctx.roundRect(-7,-4.5,14,9,3);ctx.fill();ctx.stroke();
-   ctx.fillStyle='rgba(255,255,255,.9)';ctx.beginPath();ctx.roundRect(-4,-1.4,3.2,2.8,1);ctx.roundRect(0.8,-1.4,3.2,2.8,1);ctx.fill();
+   ctx.fillStyle='rgba(255,255,255,.9)';ctx.beginPath();
+   ctx.roundRect(-4,-1.4,3.2,2.8,1);ctx.roundRect(0.8,-1.4,3.2,2.8,1);ctx.fill();
    ctx.restore();
-   ctx.font='600 10px sans-serif';ctx.fillStyle='rgba(40,56,70,.8)';
-   ctx.fillText((p.name||'载具'),sx+10,sy-3);
-   ctx.fillStyle='rgba(40,56,70,.55)';ctx.fillText(Math.round(d)+'m',sx+10,sy+8);
-   continue;
+  } else {
+   const col=c.team?'#3d7ff0':(c.bot?'#26b36b':'#e8493f');
+   ctx.beginPath();ctx.arc(sx,sy,c.team?4.5:5.5,0,Math.PI*2);ctx.fillStyle=col;ctx.fill();
+   ctx.strokeStyle='rgba(255,255,255,.92)';ctx.lineWidth=1.2;ctx.stroke();
+   if(!c.team&&p.maxhp>0){const w=32;ctx.fillStyle='rgba(232,73,63,.8)';
+    ctx.fillRect(sx-w/2,sy-12,w*Math.max(0,p.hp)/p.maxhp,3);}
   }
-  const col=team?'#3d7ff0':(p.bot?'#26b36b':'#e8493f');
-  ctx.beginPath();ctx.arc(sx,sy,team?4.5:5.5,0,Math.PI*2);ctx.fillStyle=col;ctx.fill();
-  ctx.strokeStyle='rgba(255,255,255,.92)';ctx.lineWidth=1.2;ctx.stroke();
-  ctx.font='600 11px sans-serif';ctx.fillStyle='rgba(30,44,58,.86)';
-  ctx.fillText(p.name||(p.bot?'人机':'敌人'),sx+9,sy-4);
-  ctx.font='10px sans-serif';ctx.fillStyle='rgba(30,44,58,.6)';
-  ctx.fillText(Math.round(d)+'m',sx+9,sy+7);
-  if(!team&&p.maxhp>0){const w=32;ctx.fillStyle='rgba(232,73,63,.8)';
-   ctx.fillRect(sx-w/2,sy-12,w*Math.max(0,p.hp)/p.maxhp,3);}
+  // 聚合数量徽标
+  if(c.n>1){
+   const bx=sx+9, by=sy-15;
+   ctx.beginPath();ctx.arc(bx,by,8,0,Math.PI*2);ctx.fillStyle='rgba(255,255,255,.94)';ctx.fill();
+   ctx.strokeStyle=c.veh?'#e08a2e':(c.team?'#3d7ff0':(c.bot?'#26b36b':'#e8493f'));ctx.lineWidth=1.2;ctx.stroke();
+   ctx.font='700 10px sans-serif';ctx.fillStyle='rgba(30,44,58,.88)';
+   ctx.fillText(String(c.n),bx-(c.n>9?6:3),by+3.5);
+  }
+  // 标签：先量宽度，再试 6 个落点，被占就只留点（避免一堆名字压在入口）
+  if(labelBudget<=0) continue;
+  let base=(c.veh?(p.name||'载具'):(p.name||(c.bot?'人机':'敌人')));
+  if(base.length>11) base=base.slice(0,11)+'…';
+  const name=base+(c.n>1?' ×'+c.n:'');
+  const dist=Math.round(c.d)+'m';
+  ctx.font='600 11px sans-serif';
+  const lw=Math.max(ctx.measureText(name).width,26)+2;
+  const cands=[[sx+10,sy-4],[sx+10,sy-18],[sx+10,sy+13],[sx-lw-10,sy-4],[sx+10,sy-31],[sx-lw-10,sy-18]];
+  for(const cand of cands){
+   const lx=cand[0], ly=cand[1];
+   if(!freeRect(lx,ly-11,lw,25)) continue;
+   ctx.font='600 11px sans-serif';
+   ctx.fillStyle=c.veh?'rgba(40,56,70,.82)':'rgba(30,44,58,.86)';
+   ctx.fillText(name,lx,ly);
+   ctx.font='10px sans-serif';ctx.fillStyle='rgba(30,44,58,.62)';
+   ctx.fillText(dist,lx,ly+11);
+   used.push({x:lx,y:ly-11,w:lw,h:25});
+   labelBudget--;
+   break;
+  }
  }
  ctx.restore();
  // 自己
