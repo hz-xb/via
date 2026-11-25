@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>ViaPro 共享雷达</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{overflow:hidden;background:radial-gradient(120% 90% at 50% 0%,#f7fafc 0%,#e9eef3 55%,#e2e8ee 100%);
+ font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:#22303c}
+#cv{position:fixed;inset:0;width:100%;height:100%}
+.hud{position:absolute;left:12px;top:12px;padding:10px 13px;border-radius:15px;font-size:12px;line-height:1.85;
+ background:rgba(255,255,255,.76);backdrop-filter:blur(14px);box-shadow:0 6px 22px rgba(31,51,71,.13);
+ border:1px solid rgba(255,255,255,.92)}
+.hud b{display:block;font-size:13px;letter-spacing:.5px;margin-bottom:3px}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:middle}
+.dot.v{width:9px;height:6px;border-radius:2px}
+#bar{position:absolute;right:10px;top:12px;display:flex;flex-direction:column;gap:7px}
+#bar button{border:0;width:38px;height:38px;border-radius:12px;font-size:15px;color:#22303c;
+ background:rgba(255,255,255,.84);backdrop-filter:blur(12px);box-shadow:0 4px 14px rgba(31,51,71,.12)}
+#bar button.on{background:#00b2a2;color:#fff}
+#ref{position:absolute;left:12px;bottom:12px;display:flex;gap:7px;flex-wrap:wrap;max-width:80vw}
+#ref button{border:0;padding:7px 12px;border-radius:11px;font-size:12px;color:#22303c;
+ background:rgba(255,255,255,.84);backdrop-filter:blur(12px);box-shadow:0 4px 14px rgba(31,51,71,.12)}
+#ref button.on{background:#22303c;color:#fff}
+#st{position:absolute;right:12px;bottom:12px;font-size:11px;color:#61727f;
+ background:rgba(255,255,255,.78);padding:5px 9px;border-radius:9px}
+#panel{position:absolute;inset:0;display:none;align-items:center;justify-content:center;
+ background:rgba(233,238,243,.78);backdrop-filter:blur(10px);z-index:9}
+.card{width:min(360px,88vw);padding:22px 20px 18px;border-radius:20px;background:#fff;
+ box-shadow:0 18px 50px rgba(24,44,66,.18);text-align:center}
+.card h2{font-size:16px;margin-bottom:6px}
+.card p{font-size:12px;color:#6a7c8c;line-height:1.7;margin-bottom:14px}
+.card input{width:100%;padding:12px 14px;border-radius:12px;border:1px solid #dde5ec;background:#f7fafc;
+ font-size:14px;color:#22303c;text-align:center;outline:none}
+.card input:focus{border-color:#00b2a2;background:#fff}
+.card button{width:100%;margin-top:12px;padding:12px;border:0;border-radius:12px;background:#00b2a2;color:#fff;font-size:14px}
+.card .err{color:#d0622a;font-size:12px;margin-top:10px;line-height:1.6}
+</style></head><body>
+<canvas id="cv"></canvas>
+<div class="hud"><b>共享雷达</b>
+<span><i class="dot" style="background:#e8493f"></i>真人</span>
+<span><i class="dot" style="background:#26b36b;margin-left:9px"></i>人机</span>
+<span><i class="dot" style="background:#3d7ff0;margin-left:9px"></i>队友</span>
+<span><i class="dot v" style="background:#e08a2e;margin-left:9px"></i>载具</span>
+<div id="info">等待房主数据…</div></div>
+<div id="bar"><button id="bIn">＋</button><button id="bOut">－</button><button id="bFollow" class="on">跟</button></div>
+<div id="ref"></div>
+<div id="st">未连接</div>
+<div id="panel"><div class="card">
+<h2>连接房主</h2>
+<p id="tip">输入房主手机上显示的地址<br>（例如 192.168.1.23:8899）</p>
+<input id="hostIn" placeholder="IP:端口" autocomplete="off" spellcheck="false">
+<button id="connBtn">连接</button>
+<div class="err" id="perr"></div>
+</div></div>
+<script>
+const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+let W=0,H=0,DPR=1,CX=0,CY=0,R=0;
+function resize(){DPR=Math.min(2,devicePixelRatio||1);W=innerWidth;H=innerHeight;
+ cv.width=W*DPR;cv.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);
+ CX=W/2;CY=H/2;R=Math.min(W,H)*0.44;}
+addEventListener('resize',resize);resize();
+
+const M=[1.964015783588887,-0.010272757017461496,-5794.176906435356,0.004500284319397486,1.9953857017614751,-8700.702274435747];
+const MAPURL='/map.webp', MAPNAME='特训岛';
+const img=new Image(); let imgOK=false; img.onload=()=>imgOK=true; img.src=MAPURL;
+
+let host='', connected=false, state=null, prev=null, refId=-1, range=200, follow=true;
+let lastOK=0;
+
+function w2p(x,y){return [M[0]*x+M[1]*y+M[2], M[3]*x+M[4]*y+M[5]];}
+function pxPerM(){return R/range;}
+
+function normHost(v){
+ v=(v||'').trim().replace(/^https?:\/\//i,'').replace(/\/+$/,'');
+ if(!v) return '';
+ if(!/:\d+$/.test(v)) v+=':8899';
+ return 'http://'+v;
+}
+function showPanel(msg){document.getElementById('panel').style.display='flex';
+ document.getElementById('perr').textContent=msg||'';}
+function hidePanel(){document.getElementById('panel').style.display='none';}
+
+function connect(h){
+ host=normHost(h); if(!host) return;
+ document.getElementById('hostIn').value=host.replace(/^http:\/\//,'');
+ if(location.protocol==='https:'){
+   // HTTPS 页面不能直接请求 http:// 接口（混合内容），这里是整页跳转到房主手机上的页面：
+   // 顶层导航不受这条限制，跳过去后页面本身就是 http，功能完整。
+   localStorage.setItem('vp_radar_host',host);
+   location.href = host;
+   return;
+ }
+ localStorage.setItem('vp_radar_host',host);
+ hidePanel();
+ poll();
+}
+function poll(){
+ if(!host) return;
+ const ctl=new AbortController(); const to=setTimeout(()=>ctl.abort(),900);
+ fetch(host+'/api/state',{cache:'no-store',signal:ctl.signal})
+  .then(r=>r.json()).then(j=>{
+    clearTimeout(to);
+    if(!j||!j.players) return;
+    prev=state; state=j; lastOK=Date.now(); connected=true;
+    document.getElementById('st').textContent='seq '+j.seq+' · '+j.players.length+' 目标';
+    if(refId<0) refId=j.me.id;
+    buildRef();
+  }).catch(()=>{clearTimeout(to); connected=false;
+    if(!state) showPanel('连不上 '+host+'，确认房主开着共享、同一 WiFi、端口没变。');
+  });
+}
+setInterval(poll,120);
+
+function refs(){ if(!state) return [];
+ const m=state.me, out=[m];
+ for(const p of state.players){ if(p.team===m.team && p.veh!==1 && p.id!==m.id) out.push(p); }
+ return out;}
+function buildRef(){
+ const box=document.getElementById('ref'), list=refs();
+ const key='n'+list.length+'r'+refId;
+ if(box.dataset.k===key) return; box.dataset.k=key; box.innerHTML='';
+ for(const r of list){
+  const b=document.createElement('button');
+  b.textContent = r.id===state.me.id ? '我（房主）' : (r.name||'队友');
+  if(r.id===refId) b.className='on';
+  b.onclick=()=>{refId=r.id; follow=true;
+    document.getElementById('bFollow').classList.add('on'); buildRef();};
+  box.appendChild(b);
+ }}
+function curRef(){const list=refs(); return list.find(r=>r.id===refId)||state.me;}
+
+function lerpP(p){
+ if(!prev) return p;
+ const o=prev.players.find(q=>q.id===p.id);
+ if(!o) return p;
+ const a=Math.min(1,(Date.now()-(state.t||0))/140);
+ return Object.assign({},p,{x:o.x+(p.x-o.x)*a, y:o.y+(p.y-o.y)*a, z:o.z+(p.z-o.z)*a,
+   yaw:o.yaw+(p.yaw-o.yaw)*a});
+}
+
+function ringGrid(){
+ const rr=R, step=range/4;
+ for(let i=1;i<=4;i++){
+  const r=rr*i/4;
+  ctx.beginPath();ctx.arc(CX,CY,r,0,Math.PI*2);
+  ctx.strokeStyle=i===4?'rgba(34,48,60,.30)':'rgba(34,48,60,.13)';
+  ctx.lineWidth=i===4?1.6:1;ctx.stroke();
+  ctx.font='600 10px sans-serif';ctx.fillStyle='rgba(40,56,70,.55)';
+  ctx.fillText(Math.round(step*i)+'m', CX+r*0.70, CY-r*0.70);
+ }
+ // 十字
+ ctx.strokeStyle='rgba(34,48,60,.10)';ctx.lineWidth=1;
+ ctx.beginPath();ctx.moveTo(CX-R,CY);ctx.lineTo(CX+R,CY);
+ ctx.moveTo(CX,CY-R);ctx.lineTo(CX,CY+R);ctx.stroke();
+}
+
+function draw(){
+ requestAnimationFrame(draw);
+ ctx.clearRect(0,0,W,H);
+ // 圆盘
+ ctx.save();
+ ctx.beginPath();ctx.arc(CX,CY,R,0,Math.PI*2);
+ ctx.fillStyle='rgba(255,255,255,.55)';ctx.fill();
+ ctx.clip();
+ const me = state ? curRef() : null;
+ if(me){
+  const pm=pxPerM();
+  if(imgOK){
+   const [mx,my]=w2p(me.x,me.y), k=pm/2;
+   ctx.globalAlpha=0.80;
+   ctx.drawImage(img, CX-mx*k, CY-my*k, 2048*k, 2048*k);
+   ctx.globalAlpha=1;
+  }
+  ringGrid();
+  // 视野扇形
+  const yaw=(me.yaw||0)*Math.PI/180;
+  const g=ctx.createRadialGradient(CX,CY,0,CX,CY,R);
+  g.addColorStop(0,'rgba(0,178,162,.30)');g.addColorStop(1,'rgba(0,178,162,0)');
+  ctx.beginPath();ctx.moveTo(CX,CY);ctx.arc(CX,CY,R,yaw-0.52,yaw+0.52);ctx.closePath();
+  ctx.fillStyle=g;ctx.fill();
+ }
+ ctx.restore();
+ // 外圈
+ ctx.beginPath();ctx.arc(CX,CY,R,0,Math.PI*2);
+ ctx.strokeStyle='rgba(255,255,255,.95)';ctx.lineWidth=3;ctx.stroke();
+ ctx.strokeStyle='rgba(0,178,162,.55)';ctx.lineWidth=1.2;ctx.stroke();
+
+ if(!me) return;
+ const pm=pxPerM();
+ ctx.save();
+ ctx.beginPath();ctx.arc(CX,CY,R-2,0,Math.PI*2);ctx.clip();
+ // 目标
+ for(const p0 of state.players){
+  if(p0.id===me.id) continue;
+  const p=lerpP(p0);
+  const dx=(p.x-me.x)*pm, dy=(p.y-me.y)*pm;
+  const d=Math.hypot(p.x-me.x,p.y-me.y);
+  if(d>range*1.06) continue;
+  const sx=CX+dx, sy=CY+dy;
+  const team=p.team===state.me.team;
+  if(p.veh===1){
+   ctx.save();ctx.translate(sx,sy);
+   ctx.fillStyle='#e08a2e';ctx.strokeStyle='rgba(255,255,255,.9)';ctx.lineWidth=1.2;
+   ctx.beginPath();ctx.roundRect(-7,-4.5,14,9,3);ctx.fill();ctx.stroke();
+   ctx.fillStyle='rgba(255,255,255,.9)';ctx.beginPath();ctx.roundRect(-4,-1.4,3.2,2.8,1);ctx.roundRect(0.8,-1.4,3.2,2.8,1);ctx.fill();
+   ctx.restore();
+   ctx.font='600 10px sans-serif';ctx.fillStyle='rgba(40,56,70,.8)';
+   ctx.fillText((p.name||'载具'),sx+10,sy-3);
+   ctx.fillStyle='rgba(40,56,70,.55)';ctx.fillText(Math.round(d)+'m',sx+10,sy+8);
+   continue;
+  }
+  const col=team?'#3d7ff0':(p.bot?'#26b36b':'#e8493f');
+  ctx.beginPath();ctx.arc(sx,sy,team?4.5:5.5,0,Math.PI*2);ctx.fillStyle=col;ctx.fill();
+  ctx.strokeStyle='rgba(255,255,255,.92)';ctx.lineWidth=1.2;ctx.stroke();
+  ctx.font='600 11px sans-serif';ctx.fillStyle='rgba(30,44,58,.86)';
+  ctx.fillText(p.name||(p.bot?'人机':'敌人'),sx+9,sy-4);
+  ctx.font='10px sans-serif';ctx.fillStyle='rgba(30,44,58,.6)';
+  ctx.fillText(Math.round(d)+'m',sx+9,sy+7);
+  if(!team&&p.maxhp>0){const w=32;ctx.fillStyle='rgba(232,73,63,.8)';
+   ctx.fillRect(sx-w/2,sy-12,w*Math.max(0,p.hp)/p.maxhp,3);}
+ }
+ ctx.restore();
+ // 自己
+ const yaw=(me.yaw||0)*Math.PI/180;
+ ctx.save();ctx.translate(CX,CY);
+ ctx.beginPath();ctx.arc(0,0,6,0,Math.PI*2);ctx.fillStyle='#00b2a2';ctx.fill();
+ ctx.strokeStyle='rgba(255,255,255,.95)';ctx.lineWidth=1.4;ctx.stroke();
+ ctx.rotate(yaw);
+ ctx.beginPath();ctx.moveTo(14,0);ctx.lineTo(5,4.5);ctx.lineTo(5,-4.5);ctx.closePath();
+ ctx.fillStyle='#00b2a2';ctx.fill();ctx.restore();
+ // 顶部信息
+ const tm=state.players.filter(p=>p.team===state.me.team&&p.veh!==1).length;
+ const en=state.players.filter(p=>p.team!==state.me.team&&p.veh!==1).length;
+ const vn=state.players.filter(p=>p.veh===1).length;
+ document.getElementById('info').textContent= MAPNAME+' · 基准 '+(me.id===state.me.id?'我':(me.name||'队友'))
+  +' · '+tm+' 队友 / '+en+' 外队 / '+vn+' 载具';
+}
+draw();
+
+function setRange(v){range=Math.max(60,Math.min(800,Math.round(v)));}
+document.getElementById('bIn').onclick=()=>setRange(range*1.4);
+document.getElementById('bOut').onclick=()=>setRange(range/1.4);
+function setFollow(v){follow=v;document.getElementById('bFollow').classList.toggle('on',v);}
+document.getElementById('bFollow').onclick=()=>setFollow(!follow);
+document.getElementById('connBtn').onclick=()=>connect(document.getElementById('hostIn').value);
+document.getElementById('hostIn').addEventListener('keydown',e=>{if(e.key==='Enter')connect(e.target.value);});
+
+// 启动：URL 里带 ?h= 优先，否则读本地记录
+if(location.protocol==='https:') document.getElementById('tip').innerHTML='输入房主手机上显示的地址<br>（例如 192.168.1.23:8899）<br><span style="color:#00a193">会跳到房主手机上的页面</span>';
+(function boot(){
+ const q=new URLSearchParams(location.search).get('h');
+ const saved=localStorage.getItem('vp_radar_host')||'';
+ if(q){connect(q);return;}
+ if(saved){document.getElementById('hostIn').value=saved.replace(/^http:\/\//,'');connect(saved);return;}
+ showPanel('');})();
+</script></body></html>
