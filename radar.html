@@ -24,6 +24,7 @@ body{overflow:hidden;background:radial-gradient(120% 90% at 50% 0%,#f7fafc 0%,#e
 #ref button.on{background:#22303c;color:#fff}
 #st{position:absolute;right:12px;bottom:12px;font-size:11px;color:#61727f;
  background:rgba(255,255,255,.78);padding:5px 9px;border-radius:9px}
+body.connecting .hud,body.connecting #bar,body.connecting #ref,body.connecting #st{display:none}
 #panel{position:absolute;inset:0;display:none;align-items:center;justify-content:center;
  background:rgba(233,238,243,.78);backdrop-filter:blur(10px);z-index:9}
 .card{width:min(360px,88vw);padding:22px 20px 18px;border-radius:20px;background:#fff;
@@ -77,9 +78,9 @@ function normHost(v){
  if(!/:\d+$/.test(v)) v+=':8899';
  return 'http://'+v;
 }
-function showPanel(msg){document.getElementById('panel').style.display='flex';
+function showPanel(msg){document.body.classList.add('connecting');document.getElementById('panel').style.display='flex';
  document.getElementById('perr').textContent=msg||'';}
-function hidePanel(){document.getElementById('panel').style.display='none';}
+function hidePanel(){document.body.classList.remove('connecting');document.getElementById('panel').style.display='none';}
 
 function connect(h){
  host=normHost(h); if(!host) return;
