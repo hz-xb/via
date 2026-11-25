@@ -177,6 +177,10 @@ function diagInit(){
 document.getElementById('retryBtn').onclick=()=>{if(host){hidePanel();startWS();pollOnce();}};
 function hidePanel(){document.body.classList.remove('connecting');}
 let ws=null, wsOK=false, pollTimer=null, retryT=null;
+function parseSafe(t){
+ // 个别目标的坐标/血量可能算出 NaN，JSON.parse 会直接抛 SyntaxError，这里先洗干净
+ return JSON.parse(t.replace(/\b-?(nan|inf|infinity)\b/gi,'0'));
+}
 function applyState(j,now){
  if(!j||!j.players)return;
  if(state){prev=state;prevAt=curAt;} else prev={players:j.players.map(p=>({id:p.id,x:p.x,y:p.y,yaw:p.yaw}))};
@@ -190,7 +194,7 @@ function applyState(j,now){
 function pollOnce(){
  if(!host)return;
  const ctl=new AbortController(), to=setTimeout(()=>ctl.abort(),800);
- fetch(host+'/api/state',{cache:'no-store',signal:ctl.signal}).then(r=>r.json()).then(j=>{clearTimeout(to);applyState(j);})
+ fetch(host+'/api/state',{cache:'no-store',signal:ctl.signal}).then(r=>r.text()).then(t=>{clearTimeout(to);applyState(parseSafe(t));})
  .catch(err=>{clearTimeout(to);
   if(!state)showPanel('连不上 '+host+'（'+(err&&err.name?err.name:'网络错误')+'），按下面顺序查：');});
 }
@@ -204,7 +208,7 @@ function startWS(){
  try{ws=new WebSocket(url);}catch(e){startPolling();return;}
  const guard=setTimeout(()=>{ if(!wsOK){ startPolling(); if(ws){try{ws.close();}catch(e){} } } },2500);
  ws.onopen=()=>{wsOK=true;clearTimeout(guard);if(pollTimer){clearInterval(pollTimer);pollTimer=null;}};
- ws.onmessage=e=>{try{applyState(JSON.parse(e.data));}catch(err){}};
+ ws.onmessage=e=>{try{applyState(typeof e.data==='string'?parseSafe(e.data):JSON.parse(e.data));}catch(err){}};
  ws.onerror=()=>{};
  ws.onclose=()=>{
   wsOK=false;ws=null;
